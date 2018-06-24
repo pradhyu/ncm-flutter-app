@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 
+//import 'package:woocommerce_api/woocommerce_api.dart';
+import './woocommerce_api.dart';
+import 'package:english_words/english_words.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 void main() => runApp(new MyApp());
 
 class MyApp extends StatelessWidget {
@@ -17,9 +24,9 @@ class MyApp extends StatelessWidget {
         // "hot reload" (press "r" in the console where you ran "flutter run",
         // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
         // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
+      home: new MyHomePage(title: 'www.NepalConstructionMart.com'),
     );
   }
 }
@@ -70,40 +77,168 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: new Text(widget.title),
       ),
-      body: new Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: new Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug paint" (press "p" in the console where you ran
-          // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
-          // window in IntelliJ) to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Text(
-              'You have pushed the button this many times:',
-            ),
-            new Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
+      body: new Products(),
       floatingActionButton: new FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
-        child: new Icon(Icons.add),
+        child: new Icon(Icons.menu),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+        bottomNavigationBar: new BottomNavigationBar(
+            items: [
+              new BottomNavigationBarItem(
+                  icon: new Icon(Icons.add),
+                  title: new Text("trends")
+              ),
+              new BottomNavigationBarItem(
+                  icon: new Icon(Icons.location_on),
+                  title: new Text("feed")
+              ),
+              new BottomNavigationBarItem(
+                  icon: new Icon(Icons.people),
+                  title: new Text("community")
+              )
+            ]
+        )
     );
   }
 }
+
+
+class Products extends StatefulWidget {
+  @override
+  createState() => new ProductsState();
+}
+
+// woo parameters
+// for oauth1 authentication
+WooCommerceAPI wc_api = new WooCommerceAPI(
+    "http://www.nepalconstructionmart.com",
+    "ck_b3b26bf14e1193829ec21ca2c8ae355be3855fc6",
+    "cs_69ddf520c834a509c41557c4ab145b8c24e0754e");
+// static category
+//https://api.myjson.com/bins/hl6iu
+class User {
+  String name;
+  int id;
+  User({this.name,this.id});
+}
+
+Future<List<User>> fetchStaticCategories() async {
+  final response = await http.get("http.get(‘https://api.github.com/users");
+  print(response.body);
+  List responseJson = json.decode(response.body.toString());
+  List<User> userList = createUserList(responseJson);
+  return userList;
+}
+
+List<User> createUserList(List data) {
+  List<User> list = new List();
+  for (int i = 0; i < data.length; i++) {
+    String title = data[i]["login"];
+    int id = data[i]["id"];
+    User movie = new User(name: title, id: id);
+    list.add(movie);
+  }
+  return list;
+}
+
+
+
+// static Products
+
+
+class ProductsState extends State<Products> {
+  Future<List> _fetchProducts() async {
+    List _productsList = await
+    wc_api.getAsync("products?fields=id,title&filter[limit]=40").then((val) {
+      List _products = new List();
+      Map parsedMap = JSON.decode(val.body);
+      List productmap = parsedMap["products"];
+      productmap.forEach((f) {
+        _products.add(f);
+      });
+      print(_products.length);
+      return _products;
+    });
+    return _productsList;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var futureBuilder = new FutureBuilder<List>(
+        future: _fetchProducts(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return CircularProgressIndicator();
+            default:
+              if (snapshot.hasError)
+                return new Text('Error: ${snapshot.error}');
+              else
+                return createListView(context, snapshot);
+          }
+        }
+    );
+    return futureBuilder;
+  }
+
+  Widget createListView(BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.hasData) {
+      List productmap = snapshot.data;
+      return
+        ListView.builder(
+          itemCount: productmap.length,
+          itemBuilder: (context, index) {
+            return new Column(
+                children: <Widget>[
+                  new ListTile(
+                    title: Text('${productmap[index]}'),
+                  ),
+                  new Divider(height: 2.0,)
+                ]
+            );
+          },
+        );
+    }
+  }
+}
+
+
+  class RandomWords extends StatefulWidget
+
+  {
+  @override
+  createState() => new RandomWordsState();
+  }
+
+  class RandomWordsState extends State<RandomWords>
+
+  {
+  @override
+  Widget build(BuildContext context) {
+  final wordPair = new WordPair.random();
+
+  return Column(
+
+  // Column is also layout widget. It takes a list of children and
+  // arranges them vertically. By default, it sizes itself to fit its
+  // children horizontally, and tries to be as tall as its parent.
+  //
+  // Invoke "debug paint" (press "p" in the console where you ran
+  // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
+  // window in IntelliJ) to see the wireframe for each widget.
+  //
+  // Column has various properties to control how it sizes itself and
+  // how it positions its children. Here we use mainAxisAlignment to
+  // center the children vertically; the main axis here is the vertical
+  // axis because Columns are vertical (the cross axis would be
+  // horizontal).
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: <Widget>[
+  new Text(wordPair.asPascalCase),
+  new Text(wordPair.asLowerCase),
+  new Text(wordPair.asUpperCase),
+  ]);
+  }
+  }

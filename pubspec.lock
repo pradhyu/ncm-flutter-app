@@ -71,6 +71,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.2"
+  english_words:
+    dependency: "direct main"
+    description:
+      name: english_words
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -103,7 +110,7 @@ packages:
     source: hosted
     version: "0.13.3"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -228,6 +235,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.1"
+  query_string:
+    dependency: transitive
+    description:
+      name: query_string
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.4"
   quiver:
     dependency: transitive
     description:
@@ -359,6 +373,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.7"
+  woocommerce_api:
+    dependency: "direct main"
+    description:
+      name: woocommerce_api
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   yaml:
     dependency: transitive
     description:
