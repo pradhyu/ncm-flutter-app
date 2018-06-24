@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Nepal Construction Mart',
       theme: new ThemeData(
         // This is the theme of your application.
         //
@@ -51,6 +51,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+
   /// This controller can be used to programmatically
   /// set the current displayed page
   PageController _pageController;
@@ -76,64 +77,57 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return new Scaffold(
-      appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: new Text(widget.title),
-      ),
-      body: new PageView(
-        children: [
+        appBar: new AppBar(
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: new Text(widget.title),
+        ),
+        body: new PageView(
+          children: [
+            new Categories(),
             new Products(),
-            new Container(color: Colors.blue),
-            new Container (color: Colors.black38)
-      ],
+            new Container(color: Colors.black38)
+          ],
+
           /// Specify the page controller
           controller: _pageController,
           onPageChanged: onPageChanged,
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: new Icon(Icons.menu),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        ),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: _incrementCounter,
+          tooltip: 'Increment',
+          child: new Icon(Icons.menu),
+        ), // This trailing comma makes auto-formatting nicer for build methods.
         bottomNavigationBar: new BottomNavigationBar(
-            items: [
-              new BottomNavigationBarItem(
-                  icon: new Icon(Icons.add),
-                  title: new Text("trends")
-              ),
-              new BottomNavigationBarItem(
-                  icon: new Icon(Icons.location_on),
-                  title: new Text("feed")
-              ),
-              new BottomNavigationBarItem(
-                  icon: new Icon(Icons.people),
-                  title: new Text("community")
-              )
-            ],
+          items: [
+            new BottomNavigationBarItem(
+                icon: new Icon(Icons.shop), title: new Text("Categories")),
+            new BottomNavigationBarItem(
+                icon: new Icon(Icons.shop_two), title: new Text("Products")),
+            new BottomNavigationBarItem(
+                icon: new Icon(Icons.rate_review), title: new Text("Product Reviews"))
+          ],
           onTap: navigationTapped,
           currentIndex: _page,
-        )
-    );
+        ));
   }
+
   /// Called when the user presses on of the
   /// [BottomNavigationBarItem] with corresponding
   /// page index
-  void navigationTapped(int page){
+  void navigationTapped(int page) {
     // Animating to the page.
     // You can use whatever duration and curve you like
-    _pageController.animateToPage(
-        page,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.ease
-    );
+    _pageController.animateToPage(page,
+        duration: const Duration(milliseconds: 300), curve: Curves.ease);
   }
 
-  void onPageChanged(int page){
-    setState((){
+  void onPageChanged(int page) {
+    setState(() {
       this._page = page;
     });
   }
+
   @override
   void initState() {
     super.initState();
@@ -141,18 +135,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     super.dispose();
     _pageController.dispose();
   }
-}
-
-
-
-
-class Products extends StatefulWidget {
-  @override
-  createState() => new ProductsState();
 }
 
 // woo parameters
@@ -161,23 +147,55 @@ WooCommerceAPI wc_api = new WooCommerceAPI(
     "http://www.nepalconstructionmart.com",
     "ck_b3b26bf14e1193829ec21ca2c8ae355be3855fc6",
     "cs_69ddf520c834a509c41557c4ab145b8c24e0754e");
+
 // static category
 //https://api.myjson.com/bins/hl6iu
 class User {
   String name;
   int id;
-  User({this.name,this.id});
+  @override
+  toString() {
+    return this.name + " -> " + this.id.toString();
+  }
+  User({this.name, this.id});
 }
 
-Future<List<User>> fetchStaticCategories() async {
-  final response = await http.get("http.get(‘https://api.github.com/users");
+
+// Category State
+class Categories extends StatefulWidget {
+  @override
+  createState() => new CategoriesState();
+}
+class CategoriesState extends State<Categories> {
+
+  @override
+  Widget build(BuildContext context) {
+    var futureBuilder = new FutureBuilder<List>(
+        future: _fetchStaticCategories(),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return CircularProgressIndicator();
+            default:
+              if (snapshot.hasError)
+                return new Text('Error: ${snapshot.error}');
+              else
+                return _createListView(context, snapshot);
+          }
+        });
+    return futureBuilder;
+  }
+
+Future<List<User>> _fetchStaticCategories() async {
+  final response = await http.get("https://api.github.com/users");
   print(response.body);
   List responseJson = json.decode(response.body.toString());
-  List<User> userList = createUserList(responseJson);
+  List<User> userList = _createUserList(responseJson);
   return userList;
 }
 
-List<User> createUserList(List data) {
+List<User> _createUserList(List data) {
   List<User> list = new List();
   for (int i = 0; i < data.length; i++) {
     String title = data[i]["login"];
@@ -187,16 +205,37 @@ List<User> createUserList(List data) {
   }
   return list;
 }
+Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.hasData) {
+      List productmap = snapshot.data;
+      return ListView.builder(
+        itemCount: productmap.length,
+        itemBuilder: (context, index) {
+          return new Column(children: <Widget>[
+            new ListTile(
+              title: Text('${productmap[index]}'),
+            ),
+            new Divider(
+              height: 2.0,
+            )
+          ]);
+        },
+      );
+    }
+  }
+}
+//////////////// Product starts here 
+class Products extends StatefulWidget {
+  @override
+  createState() => new ProductsState();
+}
 
-
-
-// static Products
-
-
+// Products state
 class ProductsState extends State<Products> {
   Future<List> _fetchProducts() async {
-    List _productsList = await
-    wc_api.getAsync("products?fields=id,title&filter[limit]=100").then((val) {
+    List _productsList = await wc_api
+        .getAsync("products?fields=id,title&filter[limit]=100")
+        .then((val) {
       List _products = new List();
       Map parsedMap = JSON.decode(val.body);
       List productmap = parsedMap["products"];
@@ -222,69 +261,65 @@ class ProductsState extends State<Products> {
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
               else
-                return createListView(context, snapshot);
+                return _createListView(context, snapshot);
           }
-        }
-    );
+        });
     return futureBuilder;
   }
 
-  Widget createListView(BuildContext context, AsyncSnapshot snapshot) {
+  Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
     if (snapshot.hasData) {
       List productmap = snapshot.data;
-      return
-        ListView.builder(
-          itemCount: productmap.length,
-          itemBuilder: (context, index) {
-            return new Column(
-                children: <Widget>[
-                  new ListTile(
-                    title: Text('${productmap[index]}'),
-                  ),
-                  new Divider(height: 2.0,)
-                ]
-            );
-          },
-        );
+      return ListView.builder(
+        itemCount: productmap.length,
+        itemBuilder: (context, index) {
+          return new Column(children: <Widget>[
+            new ListTile(
+              title: Text('${productmap[index]}'),
+            ),
+            new Divider(
+              height: 2.0,
+            )
+          ]);
+        },
+      );
     }
   }
 }
 
 
-  class RandomWords extends StatefulWidget
 
-  {
+// Examples on how to use stateful widget or state 
+class RandomWords extends StatefulWidget {
   @override
   createState() => new RandomWordsState();
-  }
+}
 
-  class RandomWordsState extends State<RandomWords>
-
-  {
+class RandomWordsState extends State<RandomWords> {
   @override
   Widget build(BuildContext context) {
-  final wordPair = new WordPair.random();
+    final wordPair = new WordPair.random();
 
-  return Column(
+    return Column(
 
-  // Column is also layout widget. It takes a list of children and
-  // arranges them vertically. By default, it sizes itself to fit its
-  // children horizontally, and tries to be as tall as its parent.
-  //
-  // Invoke "debug paint" (press "p" in the console where you ran
-  // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
-  // window in IntelliJ) to see the wireframe for each widget.
-  //
-  // Column has various properties to control how it sizes itself and
-  // how it positions its children. Here we use mainAxisAlignment to
-  // center the children vertically; the main axis here is the vertical
-  // axis because Columns are vertical (the cross axis would be
-  // horizontal).
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: <Widget>[
-  new Text(wordPair.asPascalCase),
-  new Text(wordPair.asLowerCase),
-  new Text(wordPair.asUpperCase),
-  ]);
+        // Column is also layout widget. It takes a list of children and
+        // arranges them vertically. By default, it sizes itself to fit its
+        // children horizontally, and tries to be as tall as its parent.
+        //
+        // Invoke "debug paint" (press "p" in the console where you ran
+        // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
+        // window in IntelliJ) to see the wireframe for each widget.
+        //
+        // Column has various properties to control how it sizes itself and
+        // how it positions its children. Here we use mainAxisAlignment to
+        // center the children vertically; the main axis here is the vertical
+        // axis because Columns are vertical (the cross axis would be
+        // horizontal).
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new Text(wordPair.asPascalCase),
+          new Text(wordPair.asLowerCase),
+          new Text(wordPair.asUpperCase),
+        ]);
   }
-  }
+}
