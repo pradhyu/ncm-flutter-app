@@ -51,6 +51,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  /// This controller can be used to programmatically
+  /// set the current displayed page
+  PageController _pageController;
+  int _page = 0;
 
   void _incrementCounter() {
     setState(() {
@@ -77,7 +81,16 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: new Text(widget.title),
       ),
-      body: new Products(),
+      body: new PageView(
+        children: [
+            new Products(),
+            new Container(color: Colors.blue),
+            new Container (color: Colors.black38)
+      ],
+          /// Specify the page controller
+          controller: _pageController,
+          onPageChanged: onPageChanged,
+      ),
       floatingActionButton: new FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
@@ -97,11 +110,44 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: new Icon(Icons.people),
                   title: new Text("community")
               )
-            ]
+            ],
+          onTap: navigationTapped,
+          currentIndex: _page,
         )
     );
   }
+  /// Called when the user presses on of the
+  /// [BottomNavigationBarItem] with corresponding
+  /// page index
+  void navigationTapped(int page){
+    // Animating to the page.
+    // You can use whatever duration and curve you like
+    _pageController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.ease
+    );
+  }
+
+  void onPageChanged(int page){
+    setState((){
+      this._page = page;
+    });
+  }
+  @override
+  void initState() {
+    super.initState();
+    _pageController = new PageController();
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
+    _pageController.dispose();
+  }
 }
+
+
 
 
 class Products extends StatefulWidget {
@@ -150,7 +196,7 @@ List<User> createUserList(List data) {
 class ProductsState extends State<Products> {
   Future<List> _fetchProducts() async {
     List _productsList = await
-    wc_api.getAsync("products?fields=id,title&filter[limit]=40").then((val) {
+    wc_api.getAsync("products?fields=id,title&filter[limit]=100").then((val) {
       List _products = new List();
       Map parsedMap = JSON.decode(val.body);
       List productmap = parsedMap["products"];
