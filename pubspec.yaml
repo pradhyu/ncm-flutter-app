@@ -8,9 +8,11 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
-  english_words: ^3.1.0
+  english_words: ^3.1.0 # a dummy :todo get rid of it
   woocommerce_api: "^0.0.2"
   http: "^0.11.3+16"
+  firebase_messaging: "^1.0.3" # for firebase
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,4 +1,4 @@
-package com.example.flutterapp
+package com.example.ncm
 
 import android.os.Bundle
 
