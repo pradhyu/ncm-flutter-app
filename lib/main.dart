@@ -5,6 +5,13 @@ import './woocommerce_api.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+// for webview
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
+// html view
+import 'package:flutter_html_view/flutter_html_view.dart';
+import 'dart:io';
+// services rootBundle for loading local file asset
+import 'package:flutter/services.dart' show rootBundle;
 
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
@@ -59,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
   PageController _pageController;
   int _page = 0;
 
-  void _incrementCounter() {
+  void _showMenu() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -88,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
             new Categories(),
             new Products(),
             new Container(color: Colors.black38),
-            new Container(color: Colors.lightGreen),
+            new Blog(),
             new Container(color: Colors.lightBlue),
           ],
 
@@ -96,11 +103,13 @@ class _MyHomePageState extends State<MyHomePage> {
           controller: _pageController,
           onPageChanged: onPageChanged,
         ),
-        floatingActionButton: new FloatingActionButton(
-          onPressed: _incrementCounter,
-          tooltip: 'Increment',
+        /*   floatingActionButton: new FloatingActionButton(
+          onPressed: _showMenu,
+          tooltip: 'Menu',
           child: new Icon(Icons.menu),
+          
         ), // This trailing comma makes auto-formatting nicer for build methods.
+        */
         bottomNavigationBar: new BottomNavigationBar(
           items: [
             new BottomNavigationBarItem(
@@ -116,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
           onTap: navigationTapped,
           currentIndex: _page,
-          type:BottomNavigationBarType.fixed,
+          type: BottomNavigationBarType.fixed,
         ));
   }
 
@@ -165,9 +174,9 @@ class User {
   toString() {
     return this.name + " => " + this.id.toString();
   }
+
   User({this.name, this.id});
 }
-
 
 // Category State
 //wc-api/v3/products/categories?fields=id,name,image,parent,count&filter[limit]=100
@@ -177,23 +186,56 @@ class Category {
   int parent;
   int count;
   String image;
+  String description;
 
   Category.fromJson(Map json) {
-   this.id = json['id'];
-   this.name=json['name'];
-   this.parent=json['parent'];
-   this.count=json['count'];
-   this.image=json['image'];
+    this.id = json['id'];
+    this.name = json['name'];
+    this.parent = json['parent'];
+    this.count = json['count'];
+    this.image = json['image'];
+    this.description = json['description'];
+    if (this.image == "") {
+      //default image
+      this.image =
+          "http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
+    }
   }
   @override
   String toString() {
-      return id.toString() +  ':' + name + ':' + image;
-    }
+    return id.toString() + ':' + name + ':' + image;
+  }
 }
+
+// progress bar
+var modalCircularProgressBar = new Stack(
+  children: [
+    new Opacity(
+      opacity: 0.1,
+      child: const ModalBarrier(dismissible: false, color: Colors.redAccent),
+    ),
+    new Center(
+      child: new CircularProgressIndicator(),
+    ),
+  ],
+);
+var modalRectangularProgressBar = new Stack(
+  children: [
+    new Opacity(
+      opacity: 0.1,
+      child: const ModalBarrier(dismissible: false, color: Colors.redAccent),
+    ),
+    new Center(
+      child: new LinearProgressIndicator(),
+    ),
+  ],
+);
+
 class Categories extends StatefulWidget {
   @override
   createState() => new CategoriesState();
 }
+
 class CategoriesState extends State<Categories> {
   Category selectedCat; // use to check tap on item.
   @override
@@ -204,7 +246,7 @@ class CategoriesState extends State<Categories> {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return CircularProgressIndicator();
+              return modalRectangularProgressBar;
             default:
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
@@ -215,13 +257,14 @@ class CategoriesState extends State<Categories> {
     return futureBuilder;
   }
 
-Future<List<Category>> _fetchStaticCategories() async {
-  return _fetchCategories();
-}
+  Future<List<Category>> _fetchStaticCategories() async {
+    return _fetchCategories();
+  }
 
-Future<List<Category>> _fetchCategories() async {
+  Future<List<Category>> _fetchCategories() async {
     List<Category> _categoryList = await wc_api
-        .getAsync("products/categories?fields=id,name,image,parent,count&filter[limit]=100")
+        .getAsync(
+            "products/categories?fields=id,name,image,parent,count,description&filter[limit]=100")
         .then((val) {
       List<Category> _categories = new List();
       Map parsedMap = JSON.decode(val.body);
@@ -232,74 +275,142 @@ Future<List<Category>> _fetchCategories() async {
       return _categories;
     });
     return _categoryList;
- }
+  }
 
 // sample function to fet user from github
-Future<List<User>> _fetchStaticGithubUsers() async {
-  final response = await http.get("https://api.github.com/users");
-  print(response.body);
-  List responseJson = json.decode(response.body.toString());
-  List<User> userList = _createUserList(responseJson);
-  return userList;
-}
-// Sample function to create userlist from the github
-List<User> _createUserList(List data) {
-  List<User> list = new List();
-  for (int i = 0; i < data.length; i++) {
-    String title = data[i]["login"];
-    int id = data[i]["id"];
-    User movie = new User(name: title, id: id);
-    list.add(movie);
+  Future<List<User>> _fetchStaticGithubUsers() async {
+    final response = await http.get("https://api.github.com/users");
+    print(response.body);
+    List responseJson = json.decode(response.body.toString());
+    List<User> userList = _createUserList(responseJson);
+    return userList;
   }
-  return list;
-}
-Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
- 
+
+// Sample function to create userlist from the github
+  List<User> _createUserList(List data) {
+    List<User> list = new List();
+    for (int i = 0; i < data.length; i++) {
+      String title = data[i]["login"];
+      int id = data[i]["id"];
+      User movie = new User(name: title, id: id);
+      list.add(movie);
+    }
+    return list;
+  }
+
+  Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
+    var imageBoxDecoration = new BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.rectangle,
+      borderRadius: new BorderRadius.circular(8.0),
+      boxShadow: <BoxShadow>[
+        new BoxShadow(
+          color: Colors.redAccent,
+          blurRadius: 2.0,
+          offset: new Offset(0.0, 1.0),
+        ),
+      ],
+    );
+
+    RichText formatHeader(String headerText) {
+      var text = new RichText(
+        text: new TextSpan(
+          // Note: Styles for TextSpans must be explicitly defined.
+          // Child text spans will inherit styles from parent
+          style: new TextStyle(
+            fontSize: 14.0,
+            color: Colors.black,
+          ),
+          children: <TextSpan>[
+            new TextSpan(
+                text: headerText[0],
+                style:
+                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
+            new TextSpan(text: headerText.substring(1, headerText.length)),
+          ],
+        ),
+      );
+      return text;
+    }
+
+    RichText formatDescription(String txt) {
+      var text = new RichText(
+        text: new TextSpan(
+          // Note: Styles for TextSpans must be explicitly defined.
+          // Child text spans will inherit styles from parent
+          style: new TextStyle(
+            fontSize: 12.0,
+            color: Colors.black,
+          ),
+          children: <TextSpan>[
+            new TextSpan(text: txt),
+          ],
+        ),
+      );
+      return text;
+    }
+
+    var categoryCardDecoration = new BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.rectangle,
+      borderRadius: new BorderRadius.circular(20.0),
+      boxShadow: <BoxShadow>[
+        new BoxShadow(
+          color: Colors.black,
+          blurRadius: 2.0,
+          offset: new Offset(0.0, 0.0),
+        ),
+      ],
+    );
     if (snapshot.hasData) {
       List<Category> categoryList = snapshot.data;
+      categoryList.sort((c1, c2) => (c2.count.compareTo(c1.count)));
       return ListView(
-                  children: categoryList
-                      .map<Widget>((Category category) => Card(
-                            child: ListTile(
-                                title: Text(category.name),
-                                leading: CircleAvatar(
-                                  child: Text(category.count.toString()),
-                                ),
-                                onTap:(){
-                                    setState((){
-                                      selectedCat=category;
-                                    });
-                                  Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("You clicked item number $selectedCat")));
-
-                                },
-                                ),
-                                
-                          ))
-                      .toList());
-   /*   return ListView.builder(
-        itemCount: categoryList.length,
-        itemBuilder: (context, index) {
-          return new Column(children: <Widget>[
-            new ListTile(
-              title: Text('${categoryList[index]}'),
-              leading: CircleAvatar(
-                                  child: Text(categoryList[index].toString())
-                                     ),
-                onTap:() {
-                  setState((){
-                  _id=index;
-                });
-                Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("You clicked item number $_id")));
-                },
-            ),
-          ]);
-        },
-      );
-      */
+          children: categoryList
+              .map<Widget>((Category category) => GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedCat = category;
+                    });
+                    Scaffold.of(context).showSnackBar(new SnackBar(
+                        content:
+                            new Text("You clicked item number $selectedCat")));
+                  },
+                  child: Container(
+                    decoration: categoryCardDecoration,
+                    padding: const EdgeInsets.all(32.0),
+                    child: new Column(children: [
+                      new Container(
+                          height: 300.0,
+                          width: 300.0,
+                          child: new Image.network(category.image),
+                          decoration: imageBoxDecoration),
+                      new Divider(
+                        height: 20.0,
+                      ),
+                      formatHeader(category.name),
+                      formatDescription(category.description),
+                      /*   ListTile(
+                        title: Text(category.name),
+                        subtitle: Text(category.description),
+                        //leading: Icon(Icons.done),
+           /*             leading: CircleAvatar(
+                          child: Text(category.count.toString()),
+                        ),
+                        */
+                      ),
+                      */
+                      new Divider(
+                        height: 2.0,
+                      ),
+                    ]),
+                  )))
+              .toList());
     }
   }
 }
-//////////////// Product starts here 
+
+//////////////// Product starts here
 class Products extends StatefulWidget {
   @override
   createState() => new ProductsState();
@@ -331,7 +442,7 @@ class ProductsState extends State<Products> {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
             case ConnectionState.waiting:
-              return CircularProgressIndicator();
+              return modalCircularProgressBar;
             default:
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
@@ -363,16 +474,61 @@ class ProductsState extends State<Products> {
 }
 // main app ends here
 
+// Blog
 
+class Blog extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return new BlogState();
+  }
+}
 
+Future<String> readFileAsString(_localFilePath) async {
+  try {
+    // Read the file
+    Future<String> contents = rootBundle.loadString(_localFilePath);
 
+    return contents;
+  } catch (e) {
+    // If we encounter an error, return 0
+    return "<b>Bold</b>";
+  }
+}
 
+class BlogState extends State<Blog> {
+  var webview = new WebviewScaffold(
+    url: "http://www.nepalconstructionmart.com/blog/",
+    withZoom: true,
+    withLocalStorage: true,
+    appBar: new AppBar(
+      title: new Text("Widget webview"),
+    ),
+  );
+  Future<String> htmlContent = readFileAsString("res/about.html");
 
+  HtmlView htmlView(context, snapshot) {
+    var data = snapshot.data.toString();
+    return HtmlView(
+      data: data,
+    );
+  }
 
-
-
-
-
-
-
-
+  @override
+  Widget build(BuildContext context) {
+    var futureBuilder = new FutureBuilder<String>(
+        future: htmlContent,
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return modalCircularProgressBar;
+            default:
+              if (snapshot.hasError)
+                return new Text('Error: ${snapshot.error}');
+              else
+                return htmlView(context, snapshot);
+          }
+        });
+        return futureBuilder;
+  }
+}
