@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 //import 'package:woocommerce_api/woocommerce_api.dart';
 import './woocommerce_api.dart';
+import "./contacts.dart";
+import "./flexibleAppBar.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -9,9 +11,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 // html view
 import 'package:flutter_html_view/flutter_html_view.dart';
-import 'dart:io';
+
 // services rootBundle for loading local file asset
 import 'package:flutter/services.dart' show rootBundle;
+
 
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
@@ -54,7 +57,8 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
+  String title;
+  final tabTitles=["Category", "Product", "Review","Blog","Contact"];
 
   @override
   _MyHomePageState createState() => new _MyHomePageState();
@@ -85,18 +89,13 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return new Scaffold(
-        appBar: new AppBar(
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: new Text(widget.title),
-        ),
         body: new PageView(
           children: [
             new Categories(),
             new Products(),
             new Container(color: Colors.black38),
             new Blog(),
-            new Container(color: Colors.lightBlue),
+            new ContactsWidget(),
           ],
 
           /// Specify the page controller
@@ -142,6 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void onPageChanged(int page) {
     setState(() {
       this._page = page;
+     widget.title=widget.tabTitles[page] ;
     });
   }
 
@@ -232,6 +232,7 @@ var modalRectangularProgressBar = new Stack(
 );
 
 class Categories extends StatefulWidget {
+  final pageAppBarBackground="http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
   @override
   createState() => new CategoriesState();
 }
@@ -312,7 +313,7 @@ class CategoriesState extends State<Categories> {
       ],
     );
 
-    RichText formatHeader(String headerText) {
+   formatHeader(String headerText) {
       var text = new RichText(
         text: new TextSpan(
           // Note: Styles for TextSpans must be explicitly defined.
@@ -330,6 +331,7 @@ class CategoriesState extends State<Categories> {
           ],
         ),
       );
+
       return text;
     }
 
@@ -365,8 +367,7 @@ class CategoriesState extends State<Categories> {
     if (snapshot.hasData) {
       List<Category> categoryList = snapshot.data;
       categoryList.sort((c1, c2) => (c2.count.compareTo(c1.count)));
-      return ListView(
-          children: categoryList
+      var categoriesList=  categoryList
               .map<Widget>((Category category) => GestureDetector(
                   onTap: () {
                     setState(() {
@@ -381,8 +382,8 @@ class CategoriesState extends State<Categories> {
                     padding: const EdgeInsets.all(32.0),
                     child: new Column(children: [
                       new Container(
-                          height: 300.0,
-                          width: 300.0,
+                          height: 150.0,
+                          width: 150.0,
                           child: new Image.network(category.image),
                           decoration: imageBoxDecoration),
                       new Divider(
@@ -405,7 +406,8 @@ class CategoriesState extends State<Categories> {
                       ),
                     ]),
                   )))
-              .toList());
+              .toList();
+              return wrapWithSilverAppBar("Categories",categoriesList,widget.pageAppBarBackground);
     }
   }
 }
@@ -532,3 +534,4 @@ class BlogState extends State<Blog> {
         return futureBuilder;
   }
 }
+
