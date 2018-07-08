@@ -15,7 +15,6 @@ import 'package:flutter_html_view/flutter_html_view.dart';
 // services rootBundle for loading local file asset
 import 'package:flutter/services.dart' show rootBundle;
 
-
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
 //import 'package:firebase_messaging/firebase_messaging.dart';
@@ -58,7 +57,7 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   String title;
-  final tabTitles=["Category", "Product", "Review","Blog","Contact"];
+  final tabTitles = ["Category", "Product", "Review", "Blog", "Contact"];
 
   @override
   _MyHomePageState createState() => new _MyHomePageState();
@@ -141,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void onPageChanged(int page) {
     setState(() {
       this._page = page;
-     widget.title=widget.tabTitles[page] ;
+      widget.title = widget.tabTitles[page];
     });
   }
 
@@ -232,7 +231,8 @@ var modalRectangularProgressBar = new Stack(
 );
 
 class Categories extends StatefulWidget {
-  final pageAppBarBackground="http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
+  final pageAppBarBackground =
+      "http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
   @override
   createState() => new CategoriesState();
 }
@@ -313,7 +313,7 @@ class CategoriesState extends State<Categories> {
       ],
     );
 
-   formatHeader(String headerText) {
+    formatHeader(String headerText) {
       var text = new RichText(
         text: new TextSpan(
           // Note: Styles for TextSpans must be explicitly defined.
@@ -367,69 +367,122 @@ class CategoriesState extends State<Categories> {
     if (snapshot.hasData) {
       List<Category> categoryList = snapshot.data;
       categoryList.sort((c1, c2) => (c2.count.compareTo(c1.count)));
-      var categoriesList=  categoryList
-              .map<Widget>((Category category) => GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedCat = category;
-                    });
-                    Scaffold.of(context).showSnackBar(new SnackBar(
-                        content:
-                            new Text("You clicked item number $selectedCat")));
-                  },
-                  child: Container(
-                    decoration: categoryCardDecoration,
-                    padding: const EdgeInsets.all(32.0),
-                    child: new Column(children: [
-                      new Container(
-                          height: 150.0,
-                          width: 150.0,
-                          child: new Image.network(category.image),
-                          decoration: imageBoxDecoration),
-                      new Divider(
-                        height: 20.0,
-                      ),
-                      formatHeader(category.name),
-                      formatDescription(category.description),
-                      /*   ListTile(
-                        title: Text(category.name),
-                        subtitle: Text(category.description),
-                        //leading: Icon(Icons.done),
-           /*             leading: CircleAvatar(
-                          child: Text(category.count.toString()),
-                        ),
-                        */
-                      ),
-                      */
-                      new Divider(
-                        height: 2.0,
-                      ),
-                    ]),
-                  )))
-              .toList();
-              return wrapWithSilverAppBar("Categories",categoriesList,widget.pageAppBarBackground);
+      var categoriesList = categoryList
+          .map<Widget>((Category category) => GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedCat = category;
+                });
+                Scaffold.of(context).showSnackBar(new SnackBar(
+                    content: new Text("You clicked item number $selectedCat")));
+              },
+              child: Container(
+                decoration: categoryCardDecoration,
+                padding: const EdgeInsets.all(32.0),
+                child: new Column(children: [
+                  new Container(
+                      height: 250.0,
+                      width: 250.0,
+                      child: new Image.network(category.image),
+                      decoration: imageBoxDecoration),
+                  new Divider(
+                    height: 20.0,
+                  ),
+                  formatHeader(category.name),
+                  formatDescription(category.description),
+                  new Divider(
+                    height: 2.0,
+                  ),
+                ]),
+              )))
+          .toList();
+      return wrapWithSilverAppBar(
+          "Categories", categoriesList, widget.pageAppBarBackground);
     }
   }
 }
 
+class ProductImage {
+  int id;
+  String src;
+  int position;
+  ProductImage.fromJson(Map json) {
+    this.id = json['id'];
+    this.src = json['src'];
+    this.position = json['position'];
+  }
+}
+
+class Product {
+  int id;
+  String title;
+  int price;
+  int regularPrice;
+  String priceHtml;
+  List<ProductImage> images=new List();
+  List<String> categories=new List(); // for some reason category object is not used here
+
+  Product.fromJson(Map json) {
+    this.id = json['id'];
+    this.title = json['title'];
+    if(json['price']!=null && json['price']!="") {
+    this.price = int.parse(json['price']);
+    }
+    if (json['regular_price']!=null && json['regular_price']!="") {
+    this.regularPrice = int.parse(json['regular_price']);
+    }
+    this.priceHtml = json['price_html'];
+
+    json['categories']?.forEach((categoryName) {
+      this.categories.add(categoryName);
+    });
+
+    json['images']?.forEach((imageJson) {
+      this.images.add(new ProductImage.fromJson(imageJson));
+    });
+  }
+}
+
+class ProductDetail {
+  Product product;
+  String description;
+  String attributes; //??
+  ProductDetail.fromJson(Map json) {
+    this.description = json['description'];
+    
+  }
+}
+
 //////////////// Product starts here
-class Products extends StatefulWidget {
-  @override
-  createState() => new ProductsState();
+class Products extends StatefulWidget { 
+  final pageAppBarBackground ="http://www.nepalconstructionmart.com/wp-content/uploads/2016/11/WAL-PAPER-SCROL.jpg";
+  var productStateCache=new ProductsState();
+
+@override
+  createState() => productStateCache;
 }
 
 // Products state
 class ProductsState extends State<Products> {
-  Future<List> _fetchProducts() async {
-    List _productsList = await wc_api
-        .getAsync("products?fields=id,title&filter[limit]=100")
+  var selectedItem;
+  int limitItems=50;
+  Future<List<Product>> _fetchProducts() async {
+    List<Product> _productsList = await wc_api
+        .getAsync(
+            "products?fields=id,title,images,regular_price,price&filter[limit]=$limitItems")
         .then((val) {
-      List _products = new List();
+      List<Product> _products = new List();
+        print("length:$_products.length");
       Map parsedMap = JSON.decode(val.body);
-      List productmap = parsedMap["products"];
-      productmap.forEach((f) {
-        _products.add(f);
+      List productmap = parsedMap["products"];// when using products/id you will get product as key otherwise products
+      productmap?.forEach((f) {
+        var prod=new Product.fromJson(f);
+        _products.add(prod);
       });
+      // if id passed , only one item is returned and with key product
+      if (parsedMap["product"]!=null){
+        _products.add(new Product.fromJson(parsedMap["product"]));
+      }
       print(_products.length);
       return _products;
     });
@@ -456,21 +509,86 @@ class ProductsState extends State<Products> {
   }
 
   Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
+
+    var imageBoxDecoration = new BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.rectangle,
+      borderRadius: new BorderRadius.circular(8.0),
+      boxShadow: <BoxShadow>[
+        new BoxShadow(
+          color: Colors.redAccent,
+          blurRadius: 2.0,
+          offset: new Offset(0.0, 0.0),
+        ),
+      ],
+    );
+
+    formatTitle(String headerText) {
+      var textContainer = Container(
+        padding: const EdgeInsets.all(10.0),
+        child: new RichText(
+        text: new TextSpan(
+          // Note: Styles for TextSpans must be explicitly defined.
+          // Child text spans will inherit styles from parent
+          style: new TextStyle(
+            fontSize: 14.0,
+            color: Colors.black,
+          ),
+          children: <TextSpan>[
+            new TextSpan(
+                text: headerText[0],
+                style:
+                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
+            new TextSpan(text: headerText.substring(1, headerText.length)),
+          ],
+        ),
+      ));
+
+      return textContainer;
+    }
+
+    var productCardDecoration = new BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.rectangle,
+      borderRadius: new BorderRadius.circular(2.0),
+      boxShadow: <BoxShadow>[
+        new BoxShadow(
+          color: Colors.black,
+          blurRadius: 2.0,
+          offset: new Offset(0.0, 0.0),
+        ),
+      ],
+    );
     if (snapshot.hasData) {
-      List productmap = snapshot.data;
-      return ListView.builder(
-        itemCount: productmap.length,
-        itemBuilder: (context, index) {
-          return new Column(children: <Widget>[
-            new ListTile(
-              title: Text('${productmap[index]}'),
-            ),
-            new Divider(
-              height: 2.0,
-            )
-          ]);
-        },
-      );
+      List<Product> productList = snapshot.data;
+      // may sort with id ? 
+ // TODO fix this
+     // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
+      var productsList = productList
+          .map<Widget>((Product product) => GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedItem = product;
+                });
+                Scaffold.of(context).showSnackBar(new SnackBar(
+                    content:
+                        new Text("You clicked item number $selectedItem")));
+              },
+              child: Container(
+                decoration: productCardDecoration,
+                child: new Row(children: [
+                  new Container(
+                      height: 100.0,
+                      width: 100.0,
+                      // just pick first picture for now
+                      child: new Image.network(product.images.first.src),
+                      decoration: imageBoxDecoration),
+                  Expanded(child: formatTitle(product.title)),
+                ]),
+              )))
+          .toList();
+      return wrapWithSilverAppBar(
+          "Product", productsList, widget.pageAppBarBackground);
     }
   }
 }
@@ -531,7 +649,6 @@ class BlogState extends State<Blog> {
                 return htmlView(context, snapshot);
           }
         });
-        return futureBuilder;
+    return futureBuilder;
   }
 }
-

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:sliver_fab/sliver_fab.dart';
 
-wrapWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl) {
+// the expanded height id defaulted to 200.0
+// itemsList is the list of items you want to show inside the 
+// title is something you want to show as caption that stays when you scroll
+wrapWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl, {expandedHeight:200.0}) {
   return new Builder(
     builder: (context) => new SliverFab(
           floatingActionButton: new FloatingActionButton(
@@ -9,10 +12,10 @@ wrapWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl) {
                 new SnackBar(content: new Text("You clicked FAB!"))),
             child: new Icon(Icons.add),
           ),
-          expandedHeight: 256.0,
+          expandedHeight: expandedHeight,
           slivers: <Widget>[
             new SliverAppBar(
-              expandedHeight: 256.0,
+              expandedHeight: expandedHeight,
               pinned: true,
               flexibleSpace: new FlexibleSpaceBar(
                 title: new Text(title),
