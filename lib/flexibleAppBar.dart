@@ -4,12 +4,12 @@ import 'package:sliver_fab/sliver_fab.dart';
 // the expanded height id defaulted to 200.0
 // itemsList is the list of items you want to show inside the 
 // title is something you want to show as caption that stays when you scroll
-wrapWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl, {expandedHeight:200.0}) {
+wrapWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl, {expandedHeight:200.0, showFabBar: false}) {
   return new Builder(
     builder: (context) => new SliverFab(
           floatingActionButton: new FloatingActionButton(
             onPressed: () => Scaffold.of(context).showSnackBar(
-                new SnackBar(content: new Text("You clicked FAB!"))),
+                new SnackBar(content: new Text("You clicked $title"))),
             child: new Icon(Icons.add),
           ),
           expandedHeight: expandedHeight,

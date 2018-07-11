@@ -3,17 +3,12 @@ import 'package:flutter/material.dart';
 //import 'package:woocommerce_api/woocommerce_api.dart';
 import './woocommerce_api.dart';
 import "./contacts.dart";
+import "./blog.dart";
 import "./flexibleAppBar.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-// for webview
-import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
-// html view
-import 'package:flutter_html_view/flutter_html_view.dart';
 
-// services rootBundle for loading local file asset
-import 'package:flutter/services.dart' show rootBundle;
 
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
@@ -38,6 +33,8 @@ class MyApp extends StatelessWidget {
         // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
         // counter didn't reset back to zero; the application is not restarted.
         primarySwatch: Colors.red,
+        primaryColor: Colors.red[700],
+        secondaryHeaderColor: Colors.red[300],
       ),
       home: new MyHomePage(title: 'www.NepalConstructionMart.com'),
     );
@@ -92,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             new Categories(),
             new Products(),
-            new Container(color: Colors.black38),
+            new Container(color: Colors.black),
             new Blog(),
             new ContactsWidget(),
           ],
@@ -319,14 +316,14 @@ class CategoriesState extends State<Categories> {
           // Note: Styles for TextSpans must be explicitly defined.
           // Child text spans will inherit styles from parent
           style: new TextStyle(
-            fontSize: 14.0,
+            fontSize: 13.0,
             color: Colors.black,
           ),
           children: <TextSpan>[
             new TextSpan(
                 text: headerText[0],
                 style:
-                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
+                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0,color: Colors.black87)),
             new TextSpan(text: headerText.substring(1, headerText.length)),
           ],
         ),
@@ -419,17 +416,18 @@ class Product {
   int price;
   int regularPrice;
   String priceHtml;
-  List<ProductImage> images=new List();
-  List<String> categories=new List(); // for some reason category object is not used here
+  List<ProductImage> images = new List();
+  List<String> categories =
+      new List(); // for some reason category object is not used here
 
   Product.fromJson(Map json) {
     this.id = json['id'];
     this.title = json['title'];
-    if(json['price']!=null && json['price']!="") {
-    this.price = int.parse(json['price']);
+    if (json['price'] != null && json['price'] != "") {
+      this.price = int.parse(json['price']);
     }
-    if (json['regular_price']!=null && json['regular_price']!="") {
-    this.regularPrice = int.parse(json['regular_price']);
+    if (json['regular_price'] != null && json['regular_price'] != "") {
+      this.regularPrice = int.parse(json['regular_price']);
     }
     this.priceHtml = json['price_html'];
 
@@ -449,38 +447,39 @@ class ProductDetail {
   String attributes; //??
   ProductDetail.fromJson(Map json) {
     this.description = json['description'];
-    
   }
 }
 
 //////////////// Product starts here
-class Products extends StatefulWidget { 
-  final pageAppBarBackground ="http://www.nepalconstructionmart.com/wp-content/uploads/2016/11/WAL-PAPER-SCROL.jpg";
-  var productStateCache=new ProductsState();
+class Products extends StatefulWidget {
+  final pageAppBarBackground =
+      "http://www.nepalconstructionmart.com/wp-content/uploads/2016/11/WAL-PAPER-SCROL.jpg";
+  var productStateCache = new ProductsState();
 
-@override
+  @override
   createState() => productStateCache;
 }
 
 // Products state
 class ProductsState extends State<Products> {
   var selectedItem;
-  int limitItems=50;
+  int limitItems = 50;
   Future<List<Product>> _fetchProducts() async {
     List<Product> _productsList = await wc_api
         .getAsync(
             "products?fields=id,title,images,regular_price,price&filter[limit]=$limitItems")
         .then((val) {
       List<Product> _products = new List();
-        print("length:$_products.length");
+      print("length:$_products.length");
       Map parsedMap = JSON.decode(val.body);
-      List productmap = parsedMap["products"];// when using products/id you will get product as key otherwise products
+      List productmap = parsedMap[
+          "products"]; // when using products/id you will get product as key otherwise products
       productmap?.forEach((f) {
-        var prod=new Product.fromJson(f);
+        var prod = new Product.fromJson(f);
         _products.add(prod);
       });
       // if id passed , only one item is returned and with key product
-      if (parsedMap["product"]!=null){
+      if (parsedMap["product"] != null) {
         _products.add(new Product.fromJson(parsedMap["product"]));
       }
       print(_products.length);
@@ -509,15 +508,14 @@ class ProductsState extends State<Products> {
   }
 
   Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
-
     var imageBoxDecoration = new BoxDecoration(
       color: Colors.white,
       shape: BoxShape.rectangle,
       borderRadius: new BorderRadius.circular(8.0),
       boxShadow: <BoxShadow>[
         new BoxShadow(
-          color: Colors.redAccent,
-          blurRadius: 2.0,
+          color: Colors.red,
+          blurRadius: 10.0,
           offset: new Offset(0.0, 0.0),
         ),
       ],
@@ -525,24 +523,24 @@ class ProductsState extends State<Products> {
 
     formatTitle(String headerText) {
       var textContainer = Container(
-        padding: const EdgeInsets.all(10.0),
-        child: new RichText(
-        text: new TextSpan(
-          // Note: Styles for TextSpans must be explicitly defined.
-          // Child text spans will inherit styles from parent
-          style: new TextStyle(
-            fontSize: 14.0,
-            color: Colors.black,
-          ),
-          children: <TextSpan>[
-            new TextSpan(
-                text: headerText[0],
-                style:
-                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
-            new TextSpan(text: headerText.substring(1, headerText.length)),
-          ],
-        ),
-      ));
+          padding: const EdgeInsets.all(10.0),
+          child: new RichText(
+            text: new TextSpan(
+              // Note: Styles for TextSpans must be explicitly defined.
+              // Child text spans will inherit styles from parent
+              style: new TextStyle(
+                fontSize: 13.0,
+                color: Colors.black,
+              ),
+              children: <TextSpan>[
+                new TextSpan(
+                    text: headerText[0],
+                    style: new TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20.0,color: Colors.black87)),
+                new TextSpan(text: headerText.substring(1, headerText.length)),
+              ],
+            ),
+          ));
 
       return textContainer;
     }
@@ -561,9 +559,9 @@ class ProductsState extends State<Products> {
     );
     if (snapshot.hasData) {
       List<Product> productList = snapshot.data;
-      // may sort with id ? 
- // TODO fix this
-     // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
+      // may sort with id ?
+      // TODO fix this
+      // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
       var productsList = productList
           .map<Widget>((Product product) => GestureDetector(
               onTap: () {
@@ -594,61 +592,3 @@ class ProductsState extends State<Products> {
 }
 // main app ends here
 
-// Blog
-
-class Blog extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return new BlogState();
-  }
-}
-
-Future<String> readFileAsString(_localFilePath) async {
-  try {
-    // Read the file
-    Future<String> contents = rootBundle.loadString(_localFilePath);
-
-    return contents;
-  } catch (e) {
-    // If we encounter an error, return 0
-    return "<b>Bold</b>";
-  }
-}
-
-class BlogState extends State<Blog> {
-  var webview = new WebviewScaffold(
-    url: "http://www.nepalconstructionmart.com/blog/",
-    withZoom: true,
-    withLocalStorage: true,
-    appBar: new AppBar(
-      title: new Text("Widget webview"),
-    ),
-  );
-  Future<String> htmlContent = readFileAsString("res/about.html");
-
-  HtmlView htmlView(context, snapshot) {
-    var data = snapshot.data.toString();
-    return HtmlView(
-      data: data,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var futureBuilder = new FutureBuilder<String>(
-        future: htmlContent,
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return modalCircularProgressBar;
-            default:
-              if (snapshot.hasError)
-                return new Text('Error: ${snapshot.error}');
-              else
-                return htmlView(context, snapshot);
-          }
-        });
-    return futureBuilder;
-  }
-}

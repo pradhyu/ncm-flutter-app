@@ -45,17 +45,20 @@ ListTile emailTile(String email) {
 }
 
 class ContactsWidget extends StatelessWidget {
+  final pageAppBarBackground =
+      "http://www.nepalconstructionmart.com/wp-content/uploads/2016/11/WAL-PAPER-SCROL.jpg";
   @override
   Widget build(BuildContext context) {
-    var view = Scaffold(
-      body: Container(
+    var contactChildren=[ 
+      Container(
         child: Row(
         children:<Widget>[
-         Expanded(child: phoneSeciton()),
-         Expanded(child: emailSection())],),
+         Expanded(child: phoneSeciton(),),
+         Expanded(child: emailSection(),)],),
       )
-    );
+    ];
  
-    return view;
+    return wrapWithSilverAppBar(
+          "Contact Us", contactChildren, pageAppBarBackground);
   }
 }
