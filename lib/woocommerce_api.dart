@@ -27,7 +27,8 @@ class WooCommerceAPI {
     var consumerSecret = this.consumerSecret; //"cs_fbb723138e354e30c3d4d4e0c0f95389bf610044";
     var token = "";
     var token_secret = "";
-    String url = this.url + "/wc-api/v3/" + endpoint;
+    //the url contains which version of wc api it wants to use
+    String url = this.url + endpoint;
 
 
     var containsQueryParams = url.contains("?");

@@ -8,8 +8,7 @@ import "./flexibleAppBar.dart";
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-
+import 'dart:math';
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
 //import 'package:firebase_messaging/firebase_messaging.dart';
@@ -87,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return new Scaffold(
         body: new PageView(
           children: [
-            new Categories(),
+            new Categories(0,"Categories"),// pageId =0
             new Products(),
             new Container(color: Colors.black),
             new Blog(),
@@ -189,13 +188,17 @@ class Category {
     this.name = json['name'];
     this.parent = json['parent'];
     this.count = json['count'];
-    this.image = json['image'];
     this.description = json['description'];
-    if (this.image == "") {
+    var imgObj = json['image'];
+    if (imgObj != null) {
+      this.image = imgObj['src'].toString();
+    } else {
       //default image
       this.image =
-          "http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
+          "/wp-content/plugins/woocommerce/assets/images/placeholder.png";
     }
+    // don't store prefix to optimize size of json
+    this.image = "http://www.nepalconstructionmart.com" + this.image;
   }
   @override
   String toString() {
@@ -228,6 +231,10 @@ var modalRectangularProgressBar = new Stack(
 );
 
 class Categories extends StatefulWidget {
+  // constructo
+  Categories (this.pageId, this.title);
+  final int pageId;
+  final String title;
   final pageAppBarBackground =
       "http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
   @override
@@ -239,7 +246,7 @@ class CategoriesState extends State<Categories> {
   @override
   Widget build(BuildContext context) {
     var futureBuilder = new FutureBuilder<List>(
-        future: _fetchStaticCategories(),
+        future: _fetchStaticCategories(widget.pageId),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -255,19 +262,22 @@ class CategoriesState extends State<Categories> {
     return futureBuilder;
   }
 
-  Future<List<Category>> _fetchStaticCategories() async {
-    return _fetchCategories();
+  Future<List<Category>> _fetchStaticCategories(int parentId) async {
+    return _fetchCategories(parentId);
   }
 
-  Future<List<Category>> _fetchCategories() async {
+// categories using v2 wordpress woo commerce rest api
+  Future<List<Category>> _fetchCategories(int parentId) async {
     List<Category> _categoryList = await wc_api
+    // only show parent=0 that's major category 
+    // then drill down to sub-categories
         .getAsync(
-            "products/categories?fields=id,name,image,parent,count,description&filter[limit]=100")
+            "/wp-json/wc/v2/products/categories?parent="+parentId.toString()+"&_fields=id,name,image,parent,count,description&per_page=100")
         .then((val) {
+      //v2 rest api woo /wordpress returns list of maps with category
+      List categoriesMapList = JSON.decode(val.body);
       List<Category> _categories = new List();
-      Map parsedMap = JSON.decode(val.body);
-      List categoryMap = parsedMap["product_categories"];
-      categoryMap.forEach((f) {
+      categoriesMapList.forEach((f) {
         _categories.add(new Category.fromJson(f));
       });
       return _categories;
@@ -300,7 +310,7 @@ class CategoriesState extends State<Categories> {
     var imageBoxDecoration = new BoxDecoration(
       color: Colors.white,
       shape: BoxShape.rectangle,
-      borderRadius: new BorderRadius.circular(8.0),
+      borderRadius: new BorderRadius.circular(18.0),
       boxShadow: <BoxShadow>[
         new BoxShadow(
           color: Colors.redAccent,
@@ -316,15 +326,17 @@ class CategoriesState extends State<Categories> {
           // Note: Styles for TextSpans must be explicitly defined.
           // Child text spans will inherit styles from parent
           style: new TextStyle(
-            fontSize: 13.0,
+            fontSize: 10.0,
             color: Colors.black,
           ),
           children: <TextSpan>[
             new TextSpan(
                 text: headerText[0],
-                style:
-                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0,color: Colors.black87)),
-            new TextSpan(text: headerText.substring(1, headerText.length)),
+                style: new TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                    color: Colors.black87)),
+            new TextSpan(text: headerText.substring(1, min(25,headerText.length))+".."),
           ],
         ),
       );
@@ -349,52 +361,59 @@ class CategoriesState extends State<Categories> {
       return text;
     }
 
-    var categoryCardDecoration = new BoxDecoration(
-      color: Colors.white,
-      shape: BoxShape.rectangle,
-      borderRadius: new BorderRadius.circular(20.0),
-      boxShadow: <BoxShadow>[
-        new BoxShadow(
-          color: Colors.black,
-          blurRadius: 2.0,
-          offset: new Offset(0.0, 0.0),
-        ),
-      ],
-    );
+    List<Widget> _buildCategoryTileList(categoryList) {
+      var categoryCardDecoration = new BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.rectangle,
+        borderRadius: new BorderRadius.circular(20.0),
+        boxShadow: <BoxShadow>[
+          new BoxShadow(
+            color: Colors.black,
+            blurRadius: 2.0,
+            offset: new Offset(2.0, 0.0),
+          ),
+        ],
+      );
+      var categoryTileList = categoryList
+          .map<Widget>(
+            (Category category) => GestureDetector(
+                onTap: () {
+                  // go to another screen on tap if the category has sub categories
+                  if(category.parent==0) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Categories(category.id, category.name)));
+                  }
+                },
+                child: Container(
+                    decoration: categoryCardDecoration,
+                    padding: const EdgeInsets.only(top: 5.0),
+                    margin: const EdgeInsets.only(left:5.0, right: 5.0),
+                    child: new Column(
+                      children: [
+                      new Container(
+                          height: 165.0,
+                          width: 200.0,
+                          child: new Image.network(category.image,
+                              fit: BoxFit.fill),
+                         // decoration: imageBoxDecoration,
+                          ),
+                      formatHeader(category.name),
+                      // formatDescription(category.description),
+                    ]))),
+          )
+          .toList();
+      return categoryTileList;
+    }
+
     if (snapshot.hasData) {
       List<Category> categoryList = snapshot.data;
       categoryList.sort((c1, c2) => (c2.count.compareTo(c1.count)));
-      var categoriesList = categoryList
-          .map<Widget>((Category category) => GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedCat = category;
-                });
-                Scaffold.of(context).showSnackBar(new SnackBar(
-                    content: new Text("You clicked item number $selectedCat")));
-              },
-              child: Container(
-                decoration: categoryCardDecoration,
-                padding: const EdgeInsets.all(32.0),
-                child: new Column(children: [
-                  new Container(
-                      height: 250.0,
-                      width: 250.0,
-                      child: new Image.network(category.image),
-                      decoration: imageBoxDecoration),
-                  new Divider(
-                    height: 20.0,
-                  ),
-                  formatHeader(category.name),
-                  formatDescription(category.description),
-                  new Divider(
-                    height: 2.0,
-                  ),
-                ]),
-              )))
-          .toList();
-      return wrapWithSilverAppBar(
-          "Categories", categoriesList, widget.pageAppBarBackground);
+      //return categoriesGridView;
+      // figure how how to use silverFab??
+      // todo
+      return wrapGridViewWithSilverAppBar(
+         widget.title,_buildCategoryTileList(categoryList),widget.pageAppBarBackground);
     }
   }
 }
@@ -467,7 +486,7 @@ class ProductsState extends State<Products> {
   Future<List<Product>> _fetchProducts() async {
     List<Product> _productsList = await wc_api
         .getAsync(
-            "products?fields=id,title,images,regular_price,price&filter[limit]=$limitItems")
+            "/wc-api/v3/products?fields=id,title,images,regular_price,price&filter[limit]=$limitItems")
         .then((val) {
       List<Product> _products = new List();
       print("length:$_products.length");
@@ -536,7 +555,9 @@ class ProductsState extends State<Products> {
                 new TextSpan(
                     text: headerText[0],
                     style: new TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 20.0,color: Colors.black87)),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20.0,
+                        color: Colors.black87)),
                 new TextSpan(text: headerText.substring(1, headerText.length)),
               ],
             ),
@@ -591,4 +612,3 @@ class ProductsState extends State<Products> {
   }
 }
 // main app ends here
-

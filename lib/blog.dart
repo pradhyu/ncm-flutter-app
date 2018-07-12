@@ -11,7 +11,7 @@ import 'dart:async';
 // Blog
 
 class Blog extends StatefulWidget {
-  final pageAppBarBackground =
+    final pageAppBarBackground =
       "http://www.nepalconstructionmart.com/wp-content/uploads/2016/11/WAL-PAPER-SCROL.jpg";
   @override
   State<StatefulWidget> createState() {
@@ -44,9 +44,10 @@ class BlogState extends State<Blog> {
 
   HtmlView htmlView(context, snapshot) {
     var data = snapshot.data.toString();
-    return HtmlView(
+    var htmlView= HtmlView(
       data: data,
     );
+    return htmlView;
   }
 
   @override
@@ -63,44 +64,6 @@ class BlogState extends State<Blog> {
                 return new Text('Error: ${snapshot.error}');
               else
                 return htmlView(context, snapshot);
-          }
-        });
-    return futureBuilder;
-  }
-}
-
-class BlogState extends State<Blog> {
-  var webview = new WebviewScaffold(
-    url: "http://www.nepalconstructionmart.com/blog/",
-    withZoom: true,
-    withLocalStorage: true,
-    appBar: new AppBar(
-      title: new Text("Widget webview"),
-    ),
-  );
-  Future<String> htmlContent = readFileAsString("res/about.html");
-
-  HtmlView htmlView(context, snapshot) {
-    var data = snapshot.data.toString();
-    return HtmlView(
-      data: data,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var futureBuilder = new FutureBuilder<String>(
-        future: htmlContent,
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return CircularProgressIndicator();
-            default:
-              if (snapshot.hasError)
-                return new Text('Error: ${snapshot.error}');
-              else
-                return wrapWithSilverAppBar("Blog",[Container(child: htmlView(context, snapshot))],widget.pageAppBarBackground);
           }
         });
     return futureBuilder;
