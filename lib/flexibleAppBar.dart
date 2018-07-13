@@ -37,9 +37,9 @@ wrapWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
 }
 
 wrapGridViewWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
-    {expandedHeight: 200.0,
+    {expandedHeight: 175.0,
     showFabBar: false,
-    gridSpacing: 10.0,
+    gridSpacing: 20.0,
     gridAspectRatio: .90}) {
   return new Builder(
      builder: (context) => Container( 
@@ -48,10 +48,11 @@ wrapGridViewWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
             slivers: <Widget>[
               new SliverAppBar(
                 expandedHeight: expandedHeight,
-                pinned: true,
+              //  pinned: true
+                floating: true,
                 backgroundColor: Colors.redAccent,
                 flexibleSpace: new FlexibleSpaceBar(
-                  title: new Text(title),
+                  title: new Text(title,  style: new TextStyle(fontSize: 14.0),),
                   background: new Image.network(
                     backgroundImageUrl,
                     fit: BoxFit.fitWidth,

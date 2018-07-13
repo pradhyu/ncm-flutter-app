@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 //import 'package:woocommerce_api/woocommerce_api.dart';
 import './woocommerce_api.dart';
+import './cacheManager.dart';
 import "./contacts.dart";
 import "./blog.dart";
+import "./dataModel.dart";
+import "./uiUtils.dart";
 import "./flexibleAppBar.dart";
 import 'dart:async';
 import 'dart:convert';
@@ -40,6 +43,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
+final Map<int, List<Category>> categoryCacheHolder = {};
+CategoryCachingRepository categoryCacheRepo =
+    new CategoryCachingRepository(categoryCacheHolder);
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -51,7 +58,6 @@ class MyHomePage extends StatefulWidget {
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
-
   String title;
   final tabTitles = ["Category", "Product", "Review", "Blog", "Contact"];
 
@@ -86,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return new Scaffold(
         body: new PageView(
           children: [
-            new Categories(0,"Categories"),// pageId =0
+            new Categories(0, "Categories"), // pageId =0
             new Products(),
             new Container(color: Colors.black),
             new Blog(),
@@ -160,79 +166,9 @@ WooCommerceAPI wc_api = new WooCommerceAPI(
     "ck_b3b26bf14e1193829ec21ca2c8ae355be3855fc6",
     "cs_69ddf520c834a509c41557c4ab145b8c24e0754e");
 
-// static category
-//https://api.myjson.com/bins/hl6iu
-class User {
-  String name;
-  int id;
-  @override
-  toString() {
-    return this.name + " => " + this.id.toString();
-  }
-
-  User({this.name, this.id});
-}
-
-// Category State
-//wc-api/v3/products/categories?fields=id,name,image,parent,count&filter[limit]=100
-class Category {
-  int id;
-  String name;
-  int parent;
-  int count;
-  String image;
-  String description;
-
-  Category.fromJson(Map json) {
-    this.id = json['id'];
-    this.name = json['name'];
-    this.parent = json['parent'];
-    this.count = json['count'];
-    this.description = json['description'];
-    var imgObj = json['image'];
-    if (imgObj != null) {
-      this.image = imgObj['src'].toString();
-    } else {
-      //default image
-      this.image =
-          "/wp-content/plugins/woocommerce/assets/images/placeholder.png";
-    }
-    // don't store prefix to optimize size of json
-    this.image = "http://www.nepalconstructionmart.com" + this.image;
-  }
-  @override
-  String toString() {
-    return id.toString() + ':' + name + ':' + image;
-  }
-}
-
-// progress bar
-var modalCircularProgressBar = new Stack(
-  children: [
-    new Opacity(
-      opacity: 0.1,
-      child: const ModalBarrier(dismissible: false, color: Colors.redAccent),
-    ),
-    new Center(
-      child: new CircularProgressIndicator(),
-    ),
-  ],
-);
-var modalRectangularProgressBar = new Stack(
-  children: [
-    new Opacity(
-      opacity: 0.1,
-      child: const ModalBarrier(dismissible: false, color: Colors.redAccent),
-    ),
-    new Center(
-      child: new LinearProgressIndicator(),
-    ),
-  ],
-);
-
 class Categories extends StatefulWidget {
   // constructo
-  Categories (this.pageId, this.title);
+  Categories(this.pageId, this.title);
   final int pageId;
   final String title;
   final pageAppBarBackground =
@@ -246,7 +182,7 @@ class CategoriesState extends State<Categories> {
   @override
   Widget build(BuildContext context) {
     var futureBuilder = new FutureBuilder<List>(
-        future: _fetchStaticCategories(widget.pageId),
+        future: _fetchCategoryFromRepo(widget.pageId),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -262,17 +198,22 @@ class CategoriesState extends State<Categories> {
     return futureBuilder;
   }
 
-  Future<List<Category>> _fetchStaticCategories(int parentId) async {
-    return _fetchCategories(parentId);
+  Future<List<Category>> _fetchCategoryFromRepo(int parentId) {
+    var cacheP = categoryCacheRepo.get(parentId);
+    if (cacheP == null) return _fetchCategories(parentId);
+    // future wrapper
+    return Future.value(cacheP);
   }
 
 // categories using v2 wordpress woo commerce rest api
   Future<List<Category>> _fetchCategories(int parentId) async {
+    var restUrl = "/wp-json/wc/v2/products/categories?parent=" +
+        parentId.toString() +
+        "&_fields=id,name,image,parent,count,description&per_page=100";
     List<Category> _categoryList = await wc_api
-    // only show parent=0 that's major category 
-    // then drill down to sub-categories
-        .getAsync(
-            "/wp-json/wc/v2/products/categories?parent="+parentId.toString()+"&_fields=id,name,image,parent,count,description&per_page=100")
+        // only show parent=0 that's major category
+        // then drill down to sub-categories
+        .getAsync(restUrl)
         .then((val) {
       //v2 rest api woo /wordpress returns list of maps with category
       List categoriesMapList = JSON.decode(val.body);
@@ -283,27 +224,6 @@ class CategoriesState extends State<Categories> {
       return _categories;
     });
     return _categoryList;
-  }
-
-// sample function to fet user from github
-  Future<List<User>> _fetchStaticGithubUsers() async {
-    final response = await http.get("https://api.github.com/users");
-    print(response.body);
-    List responseJson = json.decode(response.body.toString());
-    List<User> userList = _createUserList(responseJson);
-    return userList;
-  }
-
-// Sample function to create userlist from the github
-  List<User> _createUserList(List data) {
-    List<User> list = new List();
-    for (int i = 0; i < data.length; i++) {
-      String title = data[i]["login"];
-      int id = data[i]["id"];
-      User movie = new User(name: title, id: id);
-      list.add(movie);
-    }
-    return list;
   }
 
   Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
@@ -336,7 +256,9 @@ class CategoriesState extends State<Categories> {
                     fontWeight: FontWeight.bold,
                     fontSize: 16.0,
                     color: Colors.black87)),
-            new TextSpan(text: headerText.substring(1, min(25,headerText.length))+".."),
+            new TextSpan(
+                text:
+                    headerText.substring(1, min(25, headerText.length)) + ".."),
           ],
         ),
       );
@@ -379,25 +301,26 @@ class CategoriesState extends State<Categories> {
             (Category category) => GestureDetector(
                 onTap: () {
                   // go to another screen on tap if the category has sub categories
-                  if(category.parent==0) {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Categories(category.id, category.name)));
+                  if (category.parent == 0) {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                Categories(category.id, category.name)));
                   }
                 },
                 child: Container(
                     decoration: categoryCardDecoration,
                     padding: const EdgeInsets.only(top: 5.0),
-                    margin: const EdgeInsets.only(left:5.0, right: 5.0),
-                    child: new Column(
-                      children: [
+                    margin: const EdgeInsets.only(left: 5.0, right: 5.0),
+                    child: new Column(children: [
                       new Container(
-                          height: 165.0,
-                          width: 200.0,
-                          child: new Image.network(category.image,
-                              fit: BoxFit.fill),
-                         // decoration: imageBoxDecoration,
-                          ),
+                        height: 165.0,
+                        width: 200.0,
+                        child:
+                            new Image.network(category.image, fit: BoxFit.fill),
+                        // decoration: imageBoxDecoration,
+                      ),
                       formatHeader(category.name),
                       // formatDescription(category.description),
                     ]))),
@@ -409,65 +332,16 @@ class CategoriesState extends State<Categories> {
     if (snapshot.hasData) {
       List<Category> categoryList = snapshot.data;
       categoryList.sort((c1, c2) => (c2.count.compareTo(c1.count)));
+      categoryCacheRepo.set(widget.pageId, categoryList);
       //return categoriesGridView;
       // figure how how to use silverFab??
       // todo
-      return wrapGridViewWithSilverAppBar(
-         widget.title,_buildCategoryTileList(categoryList),widget.pageAppBarBackground);
+      return wrapGridViewWithSilverAppBar(widget.title,
+          _buildCategoryTileList(categoryList), widget.pageAppBarBackground);
     }
   }
 }
 
-class ProductImage {
-  int id;
-  String src;
-  int position;
-  ProductImage.fromJson(Map json) {
-    this.id = json['id'];
-    this.src = json['src'];
-    this.position = json['position'];
-  }
-}
-
-class Product {
-  int id;
-  String title;
-  int price;
-  int regularPrice;
-  String priceHtml;
-  List<ProductImage> images = new List();
-  List<String> categories =
-      new List(); // for some reason category object is not used here
-
-  Product.fromJson(Map json) {
-    this.id = json['id'];
-    this.title = json['title'];
-    if (json['price'] != null && json['price'] != "") {
-      this.price = int.parse(json['price']);
-    }
-    if (json['regular_price'] != null && json['regular_price'] != "") {
-      this.regularPrice = int.parse(json['regular_price']);
-    }
-    this.priceHtml = json['price_html'];
-
-    json['categories']?.forEach((categoryName) {
-      this.categories.add(categoryName);
-    });
-
-    json['images']?.forEach((imageJson) {
-      this.images.add(new ProductImage.fromJson(imageJson));
-    });
-  }
-}
-
-class ProductDetail {
-  Product product;
-  String description;
-  String attributes; //??
-  ProductDetail.fromJson(Map json) {
-    this.description = json['description'];
-  }
-}
 
 //////////////// Product starts here
 class Products extends StatefulWidget {
