@@ -1,4 +1,3 @@
-
 // Category State
 //wc-api/v3/products/categories?fields=id,name,image,parent,count&filter[limit]=100
 class Category {
@@ -12,6 +11,9 @@ class Category {
   Category.fromJson(Map json) {
     this.id = json['id'];
     this.name = json['name'];
+    if (this.name == "" || this.name == null) {
+      this.name = "Untitled";
+    }
     this.parent = json['parent'];
     this.count = json['count'];
     this.description = json['description'];
@@ -32,42 +34,85 @@ class Category {
   }
 }
 
-
-
 class ProductImage {
-  int id;
   String src;
-  int position;
   ProductImage.fromJson(Map json) {
-    this.id = json['id'];
-    this.src = json['src'];
-    this.position = json['position'];
+    this.src = "http://www.nepalconstructionmart.com" + json['src'];
   }
 }
 
+// todo: fix duplicates in featured product and product. 
+class FeaturedProduct extends Product {
+  String description = "NA";
+  FeaturedProduct.fromJson(Map json) {
+     this.id = json['id'];
+    this.name = json['name'];
+    if (this.name == "" || this.name == null) {
+      this.name = "Untitled";
+    }
+    if (json['price'] != null && json['price'] != "") {
+      this.price = double.parse(json['price']);
+    }
+    if (json['regular_price'] != null && json['regular_price'] != "") {
+      this.regularPrice = double.parse(json['regular_price']);
+      // if non regular price division by zero so check price
+      this.discount =
+          (((this.regularPrice - this.price) / this.regularPrice) * 100);
+    }
+
+    if (this.priceHtml != null) {
+      this.priceHtml = json['price_html'];
+    }
+
+    json['categories']?.forEach((categoryMap) {
+      // categoryMap is json obj with id, name, slug
+      this.categories.add(categoryMap['name']);
+    });
+
+    json['images']?.forEach((imageJson) {
+      this.images.add(new ProductImage.fromJson(imageJson));
+    });
+    this.description = json[description];
+  }
+}
+
+
 class Product {
   int id;
-  String title;
-  int price;
-  int regularPrice;
+  double price;
+  double regularPrice=0.0;
+  double discount=0.0;
+  String name;
   String priceHtml;
   List<ProductImage> images = new List();
   List<String> categories =
       new List(); // for some reason category object is not used here
 
+  Product(){
+  }
   Product.fromJson(Map json) {
     this.id = json['id'];
-    this.title = json['title'];
+    this.name = json['name'];
+    if (this.name == "" || this.name == null) {
+      this.name = "Untitled";
+    }
     if (json['price'] != null && json['price'] != "") {
-      this.price = int.parse(json['price']);
+      this.price = double.parse(json['price']);
     }
     if (json['regular_price'] != null && json['regular_price'] != "") {
-      this.regularPrice = int.parse(json['regular_price']);
+      this.regularPrice = double.parse(json['regular_price']);
+      // if non regular price division by zero so check price
+      this.discount =
+          (((this.regularPrice - this.price) / this.regularPrice) * 100);
     }
-    this.priceHtml = json['price_html'];
 
-    json['categories']?.forEach((categoryName) {
-      this.categories.add(categoryName);
+    if (this.priceHtml != null) {
+      this.priceHtml = json['price_html'];
+    }
+
+    json['categories']?.forEach((categoryMap) {
+      // categoryMap is json obj with id, name, slug
+      this.categories.add(categoryMap['name']);
     });
 
     json['images']?.forEach((imageJson) {
