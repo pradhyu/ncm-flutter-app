@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import "./dataModel.dart";
 import "./restCalls.dart";
@@ -6,31 +5,32 @@ import 'dart:async';
 import "./uiUtils.dart";
 import 'package:intl/intl.dart';
 
-class FeaturedProducts extends StatefulWidget {
+class ProductDetails extends StatefulWidget {
   final pageAppBarBackground =
       "http://www.nepalconstructionmart.com/wp-content/uploads/2016/07/BEKO-Banner.jpg";
+  int productId;
+  ProductDetails(productId) {
+    this.productId = productId;
+  }
 
   @override
   createState() {
-    return new FeaturedProductsState();
+    return new ProductDetailsState();
   }
 }
 
-class FeaturedProductsState extends State<FeaturedProducts> {
-  var selectedItem;
-  var selectedPageId = 1;
-  int limitItems = 100;
-  Future<List<FeaturedProduct>> _fetchProductsFromRepo(int pageId) {
-    var cacheP = featuredProductCacheRepo.get(pageId);
-    if (cacheP == null) return forceCacheFeaturedProducts(pageId, limitItems);
+class ProductDetailsState extends State<ProductDetails> {
+  Future<ProductDetail> _fetchProductDetailFromRepo(int productId) {
+    var cacheP = productDetailCacheRepo.get(productId);
+    if (cacheP == null) return forceCacheProductDetail(productId);
     // future wrapper
     return Future.value(cacheP);
   }
 
   @override
   Widget build(BuildContext context) {
-    var futureBuilder = new FutureBuilder<List>(
-        future: _fetchProductsFromRepo(selectedPageId),
+    var futureBuilder = new FutureBuilder<ProductDetail>(
+        future: _fetchProductDetailFromRepo(widget.productId),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -144,50 +144,41 @@ class FeaturedProductsState extends State<FeaturedProducts> {
       ],
     );
     if (snapshot.hasData) {
-      List<FeaturedProduct> productList = snapshot.data;
+      ProductDetail productDetail = snapshot.data;
       // may sort with id ?
       // TODO fix this
       // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
-      var productWidgetList = productList
-          .map<Widget>((product) => GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedItem = product;
-                  });
-                  Scaffold.of(context).showSnackBar(new SnackBar(
-                      content:
-                          new Text("You clicked item number $selectedItem")));
-                },
-                child: Container(
-                  margin: EdgeInsets.all(50.0),
-                  decoration: productCardDecoration,
-                  child: new Container(
-                    // just pick first picture for now
-                    alignment: Alignment.topCenter,
-                    margin: EdgeInsets.all(1.0),
-                    child: Column(children: <Widget>[
-                      Expanded(
-                          child: new Image.network(
-                        product.images.first.src,
-                        fit: BoxFit.scaleDown,
-                      )),
-                      Expanded(
-                          child: new ListTile(
-                        title: new Text(product.name),
-                        subtitle: new Text(product.description),
-                      ))
-                    ]),
-                    decoration: imageBoxDecoration,
-                  ),
-                ),
+      var productDetailWidget = GestureDetector(
+        child: Container(
+          margin: EdgeInsets.all(50.0),
+          decoration: productCardDecoration,
+          child: new Container(
+            // just pick first picture for now
+            alignment: Alignment.topCenter,
+            margin: EdgeInsets.all(1.0),
+            child: Column(children: <Widget>[
+              Expanded(
+                  child: new Image.network(
+                productDetail.images.first.src,
+                fit: BoxFit.scaleDown,
+              )),
+              Expanded(
+                  child: new ListTile(
+                title: new Text(productDetail.name),
+                subtitle: new Text(productDetail.description),
               ))
-          .toList();
+            ]),
+            decoration: imageBoxDecoration,
+          ),
+        ),
+      );
 
-      productCacheRepo.set(selectedPageId, productList);
+      productDetailCacheRepo.set(widget.productId, productDetail);
 
-     // return wrapGridViewHorizontalSBWithSilverAppBar(
+      return productDetailWidget;
+      // return wrapGridViewHorizontalSBWithSilverAppBar(
       //    "Featured Product", productWidgetList, widget.pageAppBarBackground,
-     //     maxCrossAxisExtent: 500.0);
+      //     maxCrossAxisExtent: 500.0);
     }
   }
 }

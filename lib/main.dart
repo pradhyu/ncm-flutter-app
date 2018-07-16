@@ -6,6 +6,7 @@ import "./blog.dart";
 import "./dataModel.dart";
 import "./uiUtils.dart";
 import "./flexibleAppBar.dart";
+import "./productDetail.dart";
 import "./restCalls.dart";
 import 'dart:async';
 import 'dart:math';
@@ -539,8 +540,7 @@ class ProductsState extends State<Products>
 
 class FeaturedProducts extends StatefulWidget {
   final pageAppBarBackground =
-      "http://www.nepalconstructionmart.com/wp-content/uploads/2016/07/BEKO-Banner.jpg";
-
+      "http://www.nepalconstructionmart.com/wp-content/uploads/2017/06/logo-NCM.jpg";
   @override
   createState() {
     return new FeaturedProductsState();
@@ -688,6 +688,9 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                   Scaffold.of(context).showSnackBar(new SnackBar(
                       content:
                           new Text("You clicked item number $selectedItem")));
+                  Navigator.push(context,
+                  MaterialPageRoute(
+                    builder:(context) => ProductDetails(product.id)));
                 },
                 child: Container(
                   margin: EdgeInsets.all(10.0),
@@ -705,7 +708,8 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                       Expanded(
                           child: new ListTile(
                         title: new Text(product.name),
-                        subtitle: new Text(product.description),
+                        trailing: new Text(product.discount.toStringAsFixed(2) + "%"),
+                        subtitle: new Text(product.shortDescription),
                       ))
                     ]),
                     decoration: imageBoxDecoration,
@@ -717,7 +721,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
       productCacheRepo.set(selectedPageId, productList);
       return wrapGridViewWithSilverAppBar(
           "Featured", productWidgetList, widget.pageAppBarBackground,
-          maxCrossAxisExtent: 500.0);
+          maxCrossAxisExtent: 500.0,expandedHeight: 420.0);
     }
   }
 }

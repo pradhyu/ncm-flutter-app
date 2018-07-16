@@ -27,6 +27,12 @@ final Map<int, List<FeaturedProduct>> featuredProductCacheHolder = {};
 FeaturedProductCachingRepository featuredProductCacheRepo =
     new FeaturedProductCachingRepository(featuredProductCacheHolder);
 
+final Map<int, ProductDetail> productDetailCacheHolder = {};
+ProductDetailCachingRepository productDetailCacheRepo =
+    new ProductDetailCachingRepository(productDetailCacheHolder);
+
+
+
 // cache calls
 Future<List<FeaturedProduct>> forceCacheFeaturedProducts(
     int pageId, int itemsLimit) async {
@@ -35,7 +41,7 @@ Future<List<FeaturedProduct>> forceCacheFeaturedProducts(
           itemsLimit.toString() +
           "&page=" +
           pageId.toString() +
-          "&featured=true&_fields=name,id,categories,price,regular_price,sale_price,on_sale,featured,images")
+          "&featured=true&_fields=name,id,short_description,categories,price,regular_price,sale_price,on_sale,featured,images")
       .then((val) {
     List<FeaturedProduct> _featuredProducts = new List();
     List productMapList = JSON.decode(val.body);
@@ -55,7 +61,7 @@ Future<List<Product>> forceCacheProducts(int pageId, int itemsLimit) async {
           itemsLimit.toString() +
           "&page=" +
           pageId.toString() +
-          "&_fields=name,id,categories,price,regular_price,sale_price,on_sale,featured,images")
+          "&_fields=name,id,categories,price,regular_price,sale_price,images")
       .then((val) {
     List<Product> _products = new List();
     List productMapList = JSON.decode(val.body);
@@ -88,4 +94,21 @@ Future<List<Category>> forceCacheCategories(int parentId) async {
     return _categories;
   });
   return _categoryList;
+}
+
+
+// cache calls
+Future<ProductDetail> forceCacheProductDetail(
+    int productId) async {
+  var _productDetail = await wc_api
+      .getAsync("/wp-json/wc/v2/products/" +
+          productId.toString() +
+          "?_fields=name,id,tags,related_ids,permalink,description,categories,price,regular_price,sale_price,on_sale,featured,images")
+      .then((val) {
+    var productJsonMap= JSON.decode(val.body);
+      ProductDetail productDetail= new ProductDetail.fromJson(productJsonMap);
+    productDetailCacheRepo.set(productId, productDetail);
+    return  productDetail;
+  });
+  return _productDetail;
 }
