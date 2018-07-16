@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 
 //import 'package:woocommerce_api/woocommerce_api.dart';
-import './woocommerce_api.dart';
-import './cacheManager.dart';
 import "./contacts.dart";
 import "./blog.dart";
 import "./dataModel.dart";
 import "./uiUtils.dart";
 import "./flexibleAppBar.dart";
+import "./restCalls.dart";
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'dart:math';
 import 'package:intl/intl.dart';
 // fo firebase
@@ -24,7 +21,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-     initForceCache();
+    initForceCache();
     return new MaterialApp(
       title: 'Nepal Construction Mart',
       theme: new ThemeData(
@@ -45,60 +42,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
-final Map<int, List<Category>> categoryCacheHolder = {};
-CategoryCachingRepository categoryCacheRepo =
-    new CategoryCachingRepository(categoryCacheHolder);
-
-final Map<int, List<Product>> productCacheHolder = {};
-ProductCachingRepository productCacheRepo =
-    new ProductCachingRepository(productCacheHolder);
-
 initForceCache() {
   forceCacheCategories(0);
+  forceCacheFeaturedProducts(1, 50);
   forceCacheProducts(1, 100);
-  forceCacheProducts(2, 100);
-}
-
-// cache calls
-Future<List<Product>> forceCacheProducts(int pageId, int itemsLimit) async {
-  var _productsList = await wc_api
-      .getAsync("/wp-json/wc/v2/products/?per_page=" +
-          itemsLimit.toString() +
-          "&page=" +
-          pageId.toString() +
-          "&_fields=name,id,categories,price,regular_price,sale_price,on_sale,featured,images")
-      .then((val) {
-    List<Product> _products = new List();
-    List productMapList = JSON.decode(val.body);
-    productMapList?.forEach((f) {
-      var prod = new Product.fromJson(f);
-      _products.add(prod);
-    });
-    productCacheRepo.set(pageId, _products);
-    return _products;
-  });
-  return _productsList;
-}
-
-Future<List<Category>> forceCacheCategories(int parentId) async {
-  var restUrl = "/wp-json/wc/v2/products/categories?parent=" +
-      parentId.toString() +
-      "&_fields=id,name,image,parent,count,description&per_page=100";
-  List<Category> _categoryList = await wc_api
-      // only show parent=0 that's major category
-      // then drill down to sub-categories
-      .getAsync(restUrl)
-      .then((val) {
-    //v2 rest api woo /wordpress returns list of maps with category
-    List categoriesMapList = JSON.decode(val.body);
-    List<Category> _categories = new List();
-    categoriesMapList.forEach((f) {
-      _categories.add(new Category.fromJson(f));
-    });
-    categoryCacheRepo.set(parentId, _categories);
-    return _categories;
-  });
-  return _categoryList;
 }
 
 class MyHomePage extends StatefulWidget {
@@ -146,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return new Scaffold(
         body: new PageView(
           children: [
-            new Container(color: Colors.black),
+            new FeaturedProducts(),
             new Categories(0, "Categories"), // pageId =0
             new Products(1),
             new Blog(),
@@ -214,12 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// woo parameters
-// for oauth1 authentication
-WooCommerceAPI wc_api = new WooCommerceAPI(
-    "http://www.nepalconstructionmart.com",
-    "ck_b3b26bf14e1193829ec21ca2c8ae355be3855fc6",
-    "cs_69ddf520c834a509c41557c4ab145b8c24e0754e");
+
 
 class Categories extends StatefulWidget {
   // constructo
@@ -383,8 +325,6 @@ class Products extends StatefulWidget {
   Products(this.pageId);
   final pageAppBarBackground =
       "http://www.nepalconstructionmart.com/wp-content/uploads/2016/11/WAL-PAPER-SCROL.jpg";
-  var productStateCache = new ProductsState();
-
   @override
   createState() => new ProductsState();
 }
@@ -598,19 +538,22 @@ class ProductsState extends State<Products>
 // main app ends here
 
 class FeaturedProducts extends StatefulWidget {
+  final pageAppBarBackground =
+      "http://www.nepalconstructionmart.com/wp-content/uploads/2016/07/BEKO-Banner.jpg";
+
   @override
-  State<StatefulWidget> createState() {
+  createState() {
     return new FeaturedProductsState();
   }
 }
 
-class FeaturedProductsState extends State<Products> {
+class FeaturedProductsState extends State<FeaturedProducts> {
   var selectedItem;
   var selectedPageId = 1;
   int limitItems = 100;
-  Future<List<Product>> _fetchProductsFromRepo(int pageId) {
-    var cacheP = productCacheRepo.get(pageId);
-    if (cacheP == null) return forceCacheProducts(pageId, limitItems);
+  Future<List<FeaturedProduct>> _fetchProductsFromRepo(int pageId) {
+    var cacheP = featuredProductCacheRepo.get(pageId);
+    if (cacheP == null) return forceCacheFeaturedProducts(pageId, limitItems);
     // future wrapper
     return Future.value(cacheP);
   }
@@ -637,12 +580,12 @@ class FeaturedProductsState extends State<Products> {
   Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
     var imageBoxDecoration = new BoxDecoration(
       color: Colors.white,
-      shape: BoxShape.rectangle,
-      borderRadius: new BorderRadius.circular(8.0),
+      shape: BoxShape.circle,
+      // borderRadius: new BorderRadius.circular(8.0),
       boxShadow: <BoxShadow>[
         new BoxShadow(
-          color: Colors.red,
-          blurRadius: 10.0,
+          color: Colors.black45,
+          blurRadius: 2.0,
           offset: new Offset(0.0, 0.0),
         ),
       ],
@@ -721,89 +664,61 @@ class FeaturedProductsState extends State<Products> {
     }
 
     var productCardDecoration = new BoxDecoration(
-      color: Colors.white,
-      shape: BoxShape.rectangle,
-      borderRadius: new BorderRadius.circular(2.0),
+      color: Color.fromRGBO(255, 10, 10, 10.0),
+      shape: BoxShape.circle,
       boxShadow: <BoxShadow>[
         new BoxShadow(
-          color: Colors.black,
-          blurRadius: 2.0,
+          color: Colors.black45,
+          blurRadius: 20.0,
           offset: new Offset(0.0, 0.0),
         ),
       ],
     );
     if (snapshot.hasData) {
-      List<Product> productList = snapshot.data;
+      List<FeaturedProduct> productList = snapshot.data;
       // may sort with id ?
       // TODO fix this
       // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
       var productWidgetList = productList
-          .map<Widget>((Product product) => GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedItem = product;
-                });
-                Scaffold.of(context).showSnackBar(new SnackBar(
-                    content:
-                        new Text("You clicked item number $selectedItem")));
-              },
-              child: Container(
-                decoration: productCardDecoration,
-                child: new Row(children: [
-                  new Container(
-                      height: 100.0,
-                      width: 100.0,
-                      // just pick first picture for now
-                      child: new Image.network(product.images.first.src),
-                      decoration: imageBoxDecoration),
-                  Expanded(
-                      child: ListTile(
-                    title: formatTitle(product.name),
-                    subtitle: productSubTitle(product), // format currency
-                  )),
-                ]),
-              )))
-          .toList();
-
-      var paginationWidget = new Container(
-        height: 70.0,
-        width: 70.0,
-        child: new ListView(
-          addRepaintBoundaries: true,
-          scrollDirection: Axis.horizontal,
-          children: new List.generate(10, (int index) {
-            var label = index + 1;
-            return GestureDetector(
+          .map<Widget>((product) => GestureDetector(
                 onTap: () {
                   setState(() {
-                    selectedPageId = label;
+                    selectedItem = product;
                   });
+                  Scaffold.of(context).showSnackBar(new SnackBar(
+                      content:
+                          new Text("You clicked item number $selectedItem")));
                 },
-                child: Card(
-                  margin: EdgeInsets.only(top: 20.0),
-                  color: Colors.white,
-                  shape: CircleBorder(
-                      side: BorderSide(width: 2.0, color: Colors.redAccent)),
+                child: Container(
+                  margin: EdgeInsets.all(10.0),
+                  decoration: productCardDecoration,
                   child: new Container(
-                    padding: EdgeInsets.all(16.0),
-                    child: new Text("$label",
-                        style: new TextStyle(
-                          fontSize: 14.0,
-                          fontFamily: 'Roboto',
-                          color: Colors.red[label * 10],
-                        )),
+                    // just pick first picture for now
+                    alignment: Alignment.topCenter,
+                    margin: EdgeInsets.all(1.0),
+                    child: Column(children: <Widget>[
+                      Expanded(
+                          child: new Image.network(
+                        product.images.first.src,
+                        fit: BoxFit.scaleDown,
+                      )),
+                      Expanded(
+                          child: new ListTile(
+                        title: new Text(product.name),
+                        subtitle: new Text(product.description),
+                      ))
+                    ]),
+                    decoration: imageBoxDecoration,
                   ),
-                ));
-          }),
-        ),
-      );
+                ),
+              ))
+          .toList();
 
       productCacheRepo.set(selectedPageId, productList);
-      var productWidgetListWithPagination = List<Widget>();
-      productWidgetListWithPagination.add(paginationWidget);
-      productWidgetListWithPagination.addAll(productWidgetList);
-      return wrapWithSilverAppBar("Product", productWidgetListWithPagination,
-          widget.pageAppBarBackground);
+      return wrapGridViewWithSilverAppBar(
+          "Featured", productWidgetList, widget.pageAppBarBackground,
+          maxCrossAxisExtent: 500.0);
     }
   }
 }
+

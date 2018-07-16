@@ -34,3 +34,15 @@ class ProductCachingRepository extends Repository<Product> {
         this.cache[categoryIndex]=value;
       }
 }
+class FeaturedProductCachingRepository extends Repository<FeaturedProduct> {
+  final Map<int,List<FeaturedProduct>> cache;
+  FeaturedProductCachingRepository(this.cache);
+  @override
+    List<FeaturedProduct> get(int categoryIndex) {
+      return cache[categoryIndex];
+    }
+    @override
+      set(int categoryIndex, List<FeaturedProduct> value) {
+        this.cache[categoryIndex]=value;
+      }
+}

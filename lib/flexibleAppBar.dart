@@ -41,8 +41,8 @@ wrapWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
             foregroundColor: Colors.red,
             onPressed: () => Scaffold.of(context).showSnackBar(new SnackBar(
                 content: new Text("You clicked Floating menu in : $title"))),
-                isExtended: true,
-                  elevation: 2.0,
+            isExtended: true,
+            elevation: 2.0,
             child: new Icon(Icons.add),
           ),
           expandedHeight: expandedHeight,
@@ -73,7 +73,8 @@ wrapGridViewWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
     {expandedHeight: 175.0,
     showFabBar: false,
     gridSpacing: 20.0,
-    gridAspectRatio: .90}) {
+    gridAspectRatio: .90,
+    maxCrossAxisExtent: 300.0}) {
   return new Builder(
       builder: (context) => Container(
           decoration: new BoxDecoration(color: Colors.white),
@@ -81,8 +82,8 @@ wrapGridViewWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
             slivers: <Widget>[
               new SliverAppBar(
                 expandedHeight: expandedHeight,
-                //  pinned: true
-                floating: true,
+                 pinned: true,
+                //floating: true,
                 backgroundColor: Colors.redAccent,
                 flexibleSpace: new FlexibleSpaceBar(
                   title: new Text(
@@ -99,7 +100,7 @@ wrapGridViewWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
               ),
               new SliverGrid(
                 gridDelegate: new SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 300.0,
+                  maxCrossAxisExtent: maxCrossAxisExtent,
                   mainAxisSpacing: gridSpacing,
                   crossAxisSpacing: 1.0,
                   childAspectRatio:

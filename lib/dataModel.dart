@@ -72,14 +72,16 @@ class FeaturedProduct extends Product {
     json['images']?.forEach((imageJson) {
       this.images.add(new ProductImage.fromJson(imageJson));
     });
+    if (json[description]!=null){
     this.description = json[description];
+    }
   }
 }
 
 
 class Product {
   int id;
-  double price;
+  double price=0.0;
   double regularPrice=0.0;
   double discount=0.0;
   String name;
