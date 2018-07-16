@@ -17,6 +17,7 @@ dependencies:
   url_launcher: "^3.0.2"
   google_maps_webservice: "^0.0.5"
   sliver_fab: "^0.1.0"
+  intl: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
