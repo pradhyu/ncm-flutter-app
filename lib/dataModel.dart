@@ -89,6 +89,7 @@ class Product {
   List<ProductImage> images = new List();
   List<String> categories =
       new List(); // for some reason category object is not used here
+  String shortDescription = "NA";
 
   Product() {}
   Product.fromJson(Map json) {
@@ -119,15 +120,18 @@ class Product {
     json['images']?.forEach((imageJson) {
       this.images.add(new ProductImage.fromJson(imageJson));
     });
+    if (json['short_description'] != null) {
+      this.shortDescription = json['short_description'];
+    }
   }
 }
 
 class ProductDetail extends FeaturedProduct {
-  List<int> relatedIds=[]; // related product items
-  String permaLink="";
-  List<int> tags=[];
+  List<int> relatedIds = []; // related product items
+  String permaLink = "";
+  List<int> tags = [];
   bool onSale;
-  String description="";
+  String description = "";
 
   ProductDetail.fromJson(Map json) {
     this.id = json['id'];
@@ -143,15 +147,13 @@ class ProductDetail extends FeaturedProduct {
       this.tags.add(tagId);
     });
 
-    if (json['on_sale']!=null) { 
+    if (json['on_sale'] != null) {
       var x = json['on_sale'];
-      this.onSale=json['on_sale'];
-
+      this.onSale = json['on_sale'];
     }
-    if (json['permalink']!=null) {
-      this.permaLink=json['permalink'];
+    if (json['permalink'] != null) {
+      this.permaLink = json['permalink'];
     }
-
 
     if (json['price'] != null && json['price'] != "") {
       this.price = double.parse(json['price']);
@@ -179,9 +181,9 @@ class ProductDetail extends FeaturedProduct {
       this.shortDescription = json['short_description'];
     }
 
-      if (json['description'] != null) {
+    if (json['description'] != null) {
       this.description = json['description'];
+      this.description = this.description.replaceAll("&nbsp;", "");
     }
-
   }
 }

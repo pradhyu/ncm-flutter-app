@@ -3,7 +3,10 @@ import "./dataModel.dart";
 import "./restCalls.dart";
 import 'dart:async';
 import "./uiUtils.dart";
+import "./flexibleAppBar.dart";
 import 'package:intl/intl.dart';
+import "package:polygon_clipper/polygon_clipper.dart";
+import 'package:flutter_html_view/flutter_html_view.dart';
 
 class ProductDetails extends StatefulWidget {
   final pageAppBarBackground =
@@ -148,37 +151,26 @@ class ProductDetailsState extends State<ProductDetails> {
       // may sort with id ?
       // TODO fix this
       // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
-      var productDetailWidget = GestureDetector(
+      Widget productDetailWidget = GestureDetector(
         child: Container(
-          margin: EdgeInsets.all(50.0),
+          margin: EdgeInsets.all(1.0),
           decoration: productCardDecoration,
-          child: new Container(
-            // just pick first picture for now
-            alignment: Alignment.topCenter,
+          child: Container(
             margin: EdgeInsets.all(1.0),
-            child: Column(children: <Widget>[
-              Expanded(
-                  child: new Image.network(
-                productDetail.images.first.src,
-                fit: BoxFit.scaleDown,
-              )),
-              Expanded(
-                  child: new ListTile(
-                title: new Text(productDetail.name),
-                subtitle: new Text(productDetail.description),
-              ))
-            ]),
+            child: 
+              new HtmlView(data: productDetail.description),
             decoration: imageBoxDecoration,
           ),
         ),
       );
 
       productDetailCacheRepo.set(widget.productId, productDetail);
+      List<Widget> widgetToDisplay = List<Widget>();
+      widgetToDisplay.add(productDetailWidget);
 
-      return productDetailWidget;
-      // return wrapGridViewHorizontalSBWithSilverAppBar(
-      //    "Featured Product", productWidgetList, widget.pageAppBarBackground,
-      //     maxCrossAxisExtent: 500.0);
+      return wrapGridViewWithSilverAppBarForProductDetail(
+          productDetail.name, widgetToDisplay, productDetail.images.first.src,
+          maxCrossAxisExtent: 700.0);
     }
   }
 }

@@ -11,6 +11,7 @@ import "./restCalls.dart";
 import 'dart:async';
 import 'dart:math';
 import 'package:intl/intl.dart';
+import 'package:flutter_html_view/flutter_html_view.dart';
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
 //import 'package:firebase_messaging/firebase_messaging.dart';
@@ -23,6 +24,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     initForceCache();
+    var textTheme = TextTheme(
+      headline: TextStyle(fontSize: 14.0),
+      body1: TextStyle(fontSize: 12.0),
+      body2: TextStyle(fontSize: 9.0),
+      caption: TextStyle(fontSize: 12.0),
+      button: TextStyle(fontSize: 9.0),
+      title: TextStyle(fontSize: 9.0),
+      subhead: TextStyle(fontSize: 10.0),
+      display1: TextStyle(fontSize: 12.0),
+      display2: TextStyle(fontSize: 9.0),
+      display3: TextStyle(fontSize: 9.0),
+      display4: TextStyle(fontSize: 9.0),
+    );
     return new MaterialApp(
       title: 'Nepal Construction Mart',
       theme: new ThemeData(
@@ -37,6 +51,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
         primaryColor: Colors.red[700],
         secondaryHeaderColor: Colors.red[300],
+        accentTextTheme: textTheme,
+        primaryTextTheme: textTheme,
+        textTheme: textTheme,
       ),
       home: new MyHomePage(title: 'www.NepalConstructionMart.com'),
     );
@@ -45,7 +62,7 @@ class MyApp extends StatelessWidget {
 
 initForceCache() {
   forceCacheCategories(0);
-  forceCacheFeaturedProducts(1, 50);
+  forceCacheFeaturedProducts(1, 100);
   forceCacheProducts(1, 100);
 }
 
@@ -162,8 +179,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-
-
 class Categories extends StatefulWidget {
   // constructo
   Categories(this.pageId, this.title);
@@ -171,8 +186,9 @@ class Categories extends StatefulWidget {
   final String title;
   final pageAppBarBackground =
       "http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
+  final categoryState = CategoriesState();
   @override
-  createState() => new CategoriesState();
+  createState() => categoryState;
 }
 
 class CategoriesState extends State<Categories> {
@@ -180,31 +196,30 @@ class CategoriesState extends State<Categories> {
 
   @override
   Widget build(BuildContext context) {
-    var futureBuilder = new FutureBuilder<List>(
-        future: _fetchCategoriesFromRepo(widget.pageId),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return modalRectangularProgressBar;
-            default:
-              if (snapshot.hasError)
-                return new Text('Error: ${snapshot.error}');
-              else
-                return _createListView(context, snapshot);
-          }
-        });
-    return futureBuilder;
+    var cacheP = categoryCacheRepo.get(widget.pageId);
+    if (cacheP != null) {
+      return _createListView(context, cacheP);
+    } else {
+      var futureBuilder = new FutureBuilder<List>(
+          future: forceCacheCategories(widget.pageId),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return modalRectangularProgressBar;
+              default:
+                if (snapshot.hasError)
+                  return new Text('Error: ${snapshot.error}');
+                else if (snapshot.hasData) {
+                  return _createListView(context, snapshot.data);
+                }
+            }
+          });
+      return futureBuilder;
+    }
   }
 
-  Future<List<Category>> _fetchCategoriesFromRepo(int parentId) {
-    var cacheP = categoryCacheRepo.get(parentId);
-    if (cacheP == null) return forceCacheCategories(parentId);
-    // future wrapper
-    return Future.value(cacheP);
-  }
-
-  Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
+  Widget _createListView(BuildContext context, List<Category> categoryList) {
     var imageBoxDecoration = new BoxDecoration(
       color: Colors.white,
       shape: BoxShape.rectangle,
@@ -307,8 +322,7 @@ class CategoriesState extends State<Categories> {
       return categoryTileList;
     }
 
-    if (snapshot.hasData) {
-      List<Category> categoryList = snapshot.data;
+    if (categoryList.length > 0) {
       categoryList.sort((c1, c2) => (c2.count.compareTo(c1.count)));
       categoryCacheRepo.set(widget.pageId, categoryList);
       //return categoriesGridView;
@@ -337,33 +351,32 @@ class ProductsState extends State<Products>
   var selectedPageId = 1;
   int limitItems = 100;
 
-  Future<List<Product>> _fetchProductsFromRepo(int pageId) {
-    var cacheP = productCacheRepo.get(pageId);
-    if (cacheP == null) return forceCacheProducts(pageId, limitItems);
-    // future wrapper
-    return Future.value(cacheP);
-  }
-
   @override
   Widget build(BuildContext context) {
-    var futureBuilder = new FutureBuilder<List>(
-        future: _fetchProductsFromRepo(selectedPageId),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return modalCircularProgressBar;
-            default:
-              if (snapshot.hasError)
-                return new Text('Error: ${snapshot.error}');
-              else
-                return _createListView(context, snapshot);
-          }
-        });
-    return futureBuilder;
+    var cacheP = productCacheRepo.get(selectedPageId);
+    if (cacheP != null) {
+      return _createListView(context, cacheP);
+    } else {
+      var futureBuilder = new FutureBuilder<List>(
+          future: forceCacheProducts(selectedPageId, limitItems),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return modalCircularProgressBar;
+              default:
+                if (snapshot.hasError)
+                  return new Text('Error: ${snapshot.error}');
+                else if (snapshot.hasData) {
+                  return _createListView(context, snapshot.data);
+                }
+            }
+          });
+      return futureBuilder;
+    }
   }
 
-  Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
+  Widget _createListView(BuildContext context, List<Product> productList) {
     var imageBoxDecoration = new BoxDecoration(
       color: Colors.white,
       shape: BoxShape.rectangle,
@@ -379,13 +392,13 @@ class ProductsState extends State<Products>
 
     formatTitle(String headerText) {
       var textContainer = Container(
-          padding: const EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(0.0),
           child: new RichText(
             text: new TextSpan(
               // Note: Styles for TextSpans must be explicitly defined.
               // Child text spans will inherit styles from parent
               style: new TextStyle(
-                fontSize: 13.0,
+                fontSize: 12.0,
                 color: Colors.black,
               ),
               children: <TextSpan>[
@@ -403,11 +416,12 @@ class ProductsState extends State<Products>
       return textContainer;
     }
 
-    formatCurrency(double number) {
+    formatCurrency(Product product) {
+      double number = product.price;
       final formatCurrency = new NumberFormat("#,##0.00");
-      return new Text(" Rs" + '${formatCurrency.format(number)}',
+      return Text("Rs " + '${formatCurrency.format(number)}',
           style: new TextStyle(
-              color: Colors.red, fontSize: 13.0, fontWeight: FontWeight.w800));
+              color: Colors.red, fontSize: 12.0, fontWeight: FontWeight.w800));
     }
 
     strikeOutPrice(double number) {
@@ -415,35 +429,64 @@ class ProductsState extends State<Products>
       return new Text("(" + '${formatCurrency.format(number)}' + ")",
           style: new TextStyle(
             color: Colors.black45,
-            fontSize: 11.0,
+            fontSize: 10.0,
             fontWeight: FontWeight.w800,
             fontStyle: FontStyle.italic,
             decoration: TextDecoration.lineThrough,
           ));
     }
 
-    productSubTitle(Product product) {
-      String discountString = "  " + product.discount.toStringAsFixed(2) + "%";
-      var saleFormat = Container(
-          child: Row(children: <Widget>[
-        formatCurrency(product.price),
-        strikeOutPrice(product.regularPrice),
-        new Text(
-          discountString,
-          style: new TextStyle(
-            color: Colors.green[900],
-            fontSize: 14.0,
+    formatShortDescription(Product product) {
+      if (product.shortDescription != "NA" &&
+          product.shortDescription != null) {
+        return Text(
+          " per " +
+              product.shortDescription
+                  .replaceAll("<p>", "")
+                  .replaceAll("</p>", "")
+                  .replaceAll("&nbsp;", ""),
+          style: TextStyle(
+            color: Colors.black45,
+            fontStyle: FontStyle.italic,
           ),
-        ),
-      ]));
+        );
+      } else {
+        return Text("");
+      }
+    }
 
-      var regularFromat = Container(
+    formatDiscount(Product product) {
+      if (product.discount > 0) {
+        String discountString =
+            "  " + product.discount.toStringAsFixed(2) + "%";
+        return new Text(discountString,
+            style: new TextStyle(
+              color: Colors.green[900],
+              fontSize: 10.0,
+            ));
+      } else {
+        return Text("");
+      }
+    }
+
+    productSubTitle(Product product) {
+      var saleFormat = Container(
+          padding: EdgeInsets.only(top: 5.0),
           child: Row(children: <Widget>[
-        formatCurrency(product.price),
-      ]));
+            formatCurrency(product),
+            strikeOutPrice(product.regularPrice),
+            formatShortDescription(product),
+          ]));
+
+      var regularFormat = Container(
+          padding: EdgeInsets.only(top: 5.0),
+          child: Row(children: <Widget>[
+            formatCurrency(product),
+            formatShortDescription(product),
+          ]));
 
       if (product.regularPrice == product.price) {
-        return regularFromat;
+        return regularFormat;
       } else {
         return saleFormat;
       }
@@ -461,35 +504,32 @@ class ProductsState extends State<Products>
         ),
       ],
     );
-    if (snapshot.hasData) {
-      List<Product> productList = snapshot.data;
+    if (productList.length > 0) {
       // may sort with id ?
       // TODO fix this
       // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
       var productWidgetList = productList
           .map<Widget>((Product product) => GestureDetector(
               onTap: () {
-                setState(() {
-                  selectedItem = product;
-                });
-                Scaffold.of(context).showSnackBar(new SnackBar(
-                    content:
-                        new Text("You clicked item number $selectedItem")));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ProductDetails(product.id)));
               },
               child: Container(
                 decoration: productCardDecoration,
                 child: new Row(children: [
                   new Container(
-                      height: 100.0,
-                      width: 100.0,
-                      // just pick first picture for now
+                      height: 90.0,
+                      width: 90.0,
                       child: new Image.network(product.images.first.src),
                       decoration: imageBoxDecoration),
                   Expanded(
                       child: ListTile(
-                    title: formatTitle(product.name),
-                    subtitle: productSubTitle(product), // format currency
-                  )),
+                          title: formatTitle(product.name),
+                          subtitle: productSubTitle(product), // format currency
+                          isThreeLine: false)),
+                  formatDiscount(product),
                 ]),
               )))
           .toList();
@@ -551,33 +591,34 @@ class FeaturedProductsState extends State<FeaturedProducts> {
   var selectedItem;
   var selectedPageId = 1;
   int limitItems = 100;
-  Future<List<FeaturedProduct>> _fetchProductsFromRepo(int pageId) {
-    var cacheP = featuredProductCacheRepo.get(pageId);
-    if (cacheP == null) return forceCacheFeaturedProducts(pageId, limitItems);
-    // future wrapper
-    return Future.value(cacheP);
-  }
 
   @override
   Widget build(BuildContext context) {
-    var futureBuilder = new FutureBuilder<List>(
-        future: _fetchProductsFromRepo(selectedPageId),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return modalCircularProgressBar;
-            default:
-              if (snapshot.hasError)
-                return new Text('Error: ${snapshot.error}');
-              else
-                return _createListView(context, snapshot);
-          }
-        });
-    return futureBuilder;
+    var cacheP = featuredProductCacheRepo.get(selectedPageId);
+    if (cacheP != null) {
+      return _createListView(context, cacheP);
+    } else {
+      var futureBuilder = new FutureBuilder<List>(
+          future: forceCacheFeaturedProducts(selectedPageId, 100),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return modalCircularProgressBar;
+              default:
+                if (snapshot.hasError)
+                  return new Text('Error: ${snapshot.error}');
+                else if (snapshot.hasData) {
+                  return _createListView(context, snapshot.data);
+                }
+            }
+          });
+      return futureBuilder;
+    }
   }
 
-  Widget _createListView(BuildContext context, AsyncSnapshot snapshot) {
+  Widget _createListView(
+      BuildContext context, List<FeaturedProduct> productList) {
     var imageBoxDecoration = new BoxDecoration(
       color: Colors.white,
       shape: BoxShape.circle,
@@ -617,11 +658,12 @@ class FeaturedProductsState extends State<FeaturedProducts> {
       return textContainer;
     }
 
-    formatCurrency(double number) {
+    formatCurrency(FeaturedProduct product) {
+      double number = product.price;
       final formatCurrency = new NumberFormat("#,##0.00");
-      return new Text(" Rs" + '${formatCurrency.format(number)}',
+      return Text(" Rs " + '${formatCurrency.format(number)}',
           style: new TextStyle(
-              color: Colors.red, fontSize: 13.0, fontWeight: FontWeight.w800));
+              color: Colors.red, fontSize: 16.0, fontWeight: FontWeight.w800));
     }
 
     strikeOutPrice(double number) {
@@ -636,24 +678,48 @@ class FeaturedProductsState extends State<FeaturedProducts> {
           ));
     }
 
-    productSubTitle(Product product) {
-      String discountString = "  " + product.discount.toStringAsFixed(2) + "%";
+    formatDiscount(FeaturedProduct product) {
+      if (product.discount > 0) {
+        String discountString =
+            "  " + product.discount.toStringAsFixed(2) + "%";
+        return new Text(discountString,
+            style: new TextStyle(
+              color: Colors.green[900],
+              fontSize: 14.0,
+            ));
+      }
+      ;
+    }
+
+    formatShortDescription(FeaturedProduct product) {
+      if (product.shortDescription != "NA" &&
+          product.shortDescription != null) {
+        return Text(
+          " per " +
+              product.shortDescription
+                  .replaceAll("<p>", "")
+                  .replaceAll("</p>", "")
+                  .replaceAll("&nbsp;", ""),
+          style: TextStyle(
+            color: Colors.black45,
+            fontStyle: FontStyle.italic,
+          ),
+        );
+      }
+    }
+
+    productSubTitle(FeaturedProduct product) {
       var saleFormat = Container(
           child: Row(children: <Widget>[
-        formatCurrency(product.price),
+        formatCurrency(product),
         strikeOutPrice(product.regularPrice),
-        new Text(
-          discountString,
-          style: new TextStyle(
-            color: Colors.green[900],
-            fontSize: 14.0,
-          ),
-        ),
+        formatShortDescription(product),
       ]));
 
       var regularFromat = Container(
           child: Row(children: <Widget>[
-        formatCurrency(product.price),
+        formatCurrency(product),
+        formatShortDescription(product),
       ]));
 
       if (product.regularPrice == product.price) {
@@ -674,55 +740,46 @@ class FeaturedProductsState extends State<FeaturedProducts> {
         ),
       ],
     );
-    if (snapshot.hasData) {
-      List<FeaturedProduct> productList = snapshot.data;
-      // may sort with id ?
-      // TODO fix this
-      // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
-      var productWidgetList = productList
-          .map<Widget>((product) => GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedItem = product;
-                  });
-                  Scaffold.of(context).showSnackBar(new SnackBar(
-                      content:
-                          new Text("You clicked item number $selectedItem")));
-                  Navigator.push(context,
-                  MaterialPageRoute(
-                    builder:(context) => ProductDetails(product.id)));
-                },
-                child: Container(
-                  margin: EdgeInsets.all(10.0),
-                  decoration: productCardDecoration,
-                  child: new Container(
-                    // just pick first picture for now
-                    alignment: Alignment.topCenter,
-                    margin: EdgeInsets.all(1.0),
-                    child: Column(children: <Widget>[
-                      Expanded(
-                          child: new Image.network(
-                        product.images.first.src,
-                        fit: BoxFit.scaleDown,
-                      )),
-                      Expanded(
-                          child: new ListTile(
-                        title: new Text(product.name),
-                        trailing: new Text(product.discount.toStringAsFixed(2) + "%"),
-                        subtitle: new Text(product.shortDescription),
-                      ))
-                    ]),
-                    decoration: imageBoxDecoration,
-                  ),
+    // TODO fix this
+    // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
+    var productWidgetList = productList
+        .map<Widget>((product) => GestureDetector(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ProductDetails(product.id)));
+              },
+              child: Container(
+                margin: EdgeInsets.all(10.0),
+                decoration: productCardDecoration,
+                child: new Container(
+                  // just pick first picture for now
+                  alignment: Alignment.topCenter,
+                  margin: EdgeInsets.all(1.0),
+                  child: Column(children: <Widget>[
+                    Expanded(
+                        child: new Image.network(
+                      product.images.first.src,
+                      fit: BoxFit.scaleDown,
+                    )),
+                    Expanded(
+                        child: new ListTile(
+                      title: formatTitle(product.name),
+                      subtitle: productSubTitle(product),
+                      trailing: formatDiscount(product),
+                      isThreeLine: true,
+                    )),
+                  ]),
+                  decoration: imageBoxDecoration,
                 ),
-              ))
-          .toList();
+              ),
+            ))
+        .toList();
 
-      productCacheRepo.set(selectedPageId, productList);
-      return wrapGridViewWithSilverAppBar(
-          "Featured", productWidgetList, widget.pageAppBarBackground,
-          maxCrossAxisExtent: 500.0,expandedHeight: 420.0);
-    }
+    productCacheRepo.set(selectedPageId, productList);
+    return wrapGridViewWithSilverAppBar(
+        "Featured", productWidgetList, widget.pageAppBarBackground,
+        maxCrossAxisExtent: 500.0, expandedHeight: 420.0);
   }
 }
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sliver_fab/sliver_fab.dart';
+import "package:polygon_clipper/polygon_clipper.dart";
 
 class BottomWaveClipper extends CustomClipper<Path> {
   @override
@@ -11,9 +12,9 @@ class BottomWaveClipper extends CustomClipper<Path> {
     var firstEndPoint = Offset(size.width / 2.25, size.height - 30.0);
     path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
         firstEndPoint.dx, firstEndPoint.dy);
-    
+
     var secondControlPoint =
-        Offset(size.width - (size.width / 3.25), size.height -65);
+        Offset(size.width - (size.width / 3.25), size.height - 65);
     var secondEndPoint = Offset(size.width, size.height - 40);
     path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
         secondEndPoint.dx, secondEndPoint.dy);
@@ -82,7 +83,7 @@ wrapGridViewWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
             slivers: <Widget>[
               new SliverAppBar(
                 expandedHeight: expandedHeight,
-                 pinned: true,
+                pinned: true,
                 //floating: true,
                 backgroundColor: Colors.redAccent,
                 flexibleSpace: new FlexibleSpaceBar(
@@ -114,6 +115,49 @@ wrapGridViewWithSilverAppBar(title, List<dynamic> itemsList, backgroundImageUrl,
                         index]; // pass the list it will call it with index
                   },
                   childCount: itemsList.length,
+                ),
+              ),
+            ],
+          )));
+}
+
+wrapGridViewWithSilverAppBarForProductDetail(
+    title, List<dynamic> itemsList, backgroundImageUrl,
+    {expandedHeight: 250.0,
+    showFabBar: false,
+    gridSpacing: 1.0,
+    gridAspectRatio: 1.0,
+    maxCrossAxisExtent: 300.0}) {
+  return new Builder(
+      builder: (context) => Container(
+          decoration: new BoxDecoration(
+            color: Colors.white,
+          ),
+          child: new CustomScrollView(
+            slivers: <Widget>[
+              new SliverAppBar(
+                  primary: true,
+                  iconTheme: new IconThemeData(
+                    color: Colors.red,
+                  ), // arrow color
+                  expandedHeight: expandedHeight,
+                  pinned: true,
+                  // title: Text(title, style: new TextStyle(color: Colors.red),),
+                  //floating: true,
+                  backgroundColor: Colors.white,
+                  flexibleSpace: new FlexibleSpaceBar(
+                    background: new Image.network(
+                      backgroundImageUrl,
+                      fit: BoxFit.contain,
+                      //color: Colors.white,
+                      //colorBlendMode: BlendMode.difference,
+                    ),
+                  )),
+              new SliverList(
+                delegate: new SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                  return itemsList[index];
+                  }
                 ),
               ),
             ],
