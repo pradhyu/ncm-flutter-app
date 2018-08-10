@@ -572,19 +572,19 @@ class WC_REST_Products_Controller extends WC_REST_Legacy_Products_Controller {
 		$data = array(
 			'id'                    => $product->get_id(),
 			'name'                  => $product->get_name( $context ),
-			'slug'                  => $product->get_slug( $context ),
+/* 			'slug'                  => $product->get_slug( $context ), */
 /* 			'permalink'             => $product->get_permalink(),
 			'date_created'          => wc_rest_prepare_date_response( $product->get_date_created( $context ), false ),
 			'date_created_gmt'      => wc_rest_prepare_date_response( $product->get_date_created( $context ) ),
 			'date_modified'         => wc_rest_prepare_date_response( $product->get_date_modified( $context ), false ),
 			'date_modified_gmt'     => wc_rest_prepare_date_response( $product->get_date_modified( $context ) ),
 			'type'                  => $product->get_type(), */
-			'status'                => $product->get_status( $context ),
+/* 			'status'                => $product->get_status( $context ), */
 			'featured'              => $product->is_featured(),
-			'catalog_visibility'    => $product->get_catalog_visibility( $context ),
+/* 			'catalog_visibility'    => $product->get_catalog_visibility( $context ), */
 			'description'           => 'view' === $context ? wpautop( do_shortcode( $product->get_description() ) ) : $product->get_description( $context ),
 			'short_description'     => 'view' === $context ? apply_filters( 'woocommerce_short_description', $product->get_short_description() ) : $product->get_short_description( $context ),
-			'sku'                   => $product->get_sku( $context ),
+/* 			'sku'                   => $product->get_sku( $context ), */
 			'price'                 => $product->get_price( $context ),
 			'regular_price'         => $product->get_regular_price( $context ),
 			'sale_price'            => $product->get_sale_price( $context ) ? $product->get_sale_price( $context ) : '',
@@ -634,11 +634,11 @@ class WC_REST_Products_Controller extends WC_REST_Legacy_Products_Controller {
 			'tags'                  => $this->get_taxonomy_terms( $product, 'tag' ),
 			'images'                => $this->get_images( $product ),
 			'attributes'            => $this->get_attributes( $product ),
-			'default_attributes'    => $this->get_default_attributes( $product ),
+/* 			'default_attributes'    => $this->get_default_attributes( $product ),
 			'variations'            => array(),
 			'grouped_products'      => array(),
 			'menu_order'            => $product->get_menu_order( $context ),
-			'meta_data'             => $product->get_meta_data(),
+			'meta_data'             => $product->get_meta_data(), */
 		);
 
 		return $data;
