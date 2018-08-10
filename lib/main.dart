@@ -730,11 +730,11 @@ class FeaturedProductsState extends State<FeaturedProducts> {
     }
 
     var productCardDecoration = new BoxDecoration(
-      color: Color.fromRGBO(255, 10, 10, 10.0),
+      //color: Color.fromRGBO(255, 10, 10, 10.0),
       shape: BoxShape.circle,
       boxShadow: <BoxShadow>[
         new BoxShadow(
-          color: Colors.black45,
+          color: Colors.black26,
           blurRadius: 20.0,
           offset: new Offset(0.0, 0.0),
         ),
@@ -751,9 +751,10 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                         builder: (context) => ProductDetails(product.id)));
               },
               child: Container(
-                margin: EdgeInsets.all(10.0),
+                margin: EdgeInsets.all(1.0),
                 decoration: productCardDecoration,
                 child: new Container(
+                transform: Matrix4.skewY(-0.03),
                   // just pick first picture for now
                   alignment: Alignment.topCenter,
                   margin: EdgeInsets.all(1.0),
@@ -761,15 +762,17 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                     Expanded(
                         child: new Image.network(
                       product.images.first.src,
-                      fit: BoxFit.scaleDown,
+                      fit: BoxFit.fill,
                     )),
                     Expanded(
-                        child: new ListTile(
-                      title: formatTitle(product.name),
-                      subtitle: productSubTitle(product),
-                      trailing: formatDiscount(product),
-                      isThreeLine: true,
-                    )),
+                        child: Container(
+                            transform: Matrix4.skewY(-0.15),
+                            child: new ListTile(
+                              title: formatTitle(product.name),
+                              subtitle: productSubTitle(product),
+                              trailing: formatDiscount(product),
+                              isThreeLine: true,
+                            ))),
                   ]),
                   decoration: imageBoxDecoration,
                 ),
@@ -780,6 +783,6 @@ class FeaturedProductsState extends State<FeaturedProducts> {
     productCacheRepo.set(selectedPageId, productList);
     return wrapGridViewWithSilverAppBar(
         "Featured", productWidgetList, widget.pageAppBarBackground,
-        maxCrossAxisExtent: 500.0, expandedHeight: 420.0);
+        maxCrossAxisExtent: 400.0, expandedHeight: 460.0);
   }
 }
