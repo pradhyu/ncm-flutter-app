@@ -23,10 +23,10 @@ class Category {
     } else {
       //default image
       this.image =
-          "/wp-content/plugins/woocommerce/assets/images/placeholder.png";
+          "http://www.nepalconstructionmart.com/wp-content/plugins/woocommerce/assets/images/placeholder.png";
     }
     // don't store prefix to optimize size of json
-    this.image = "http://www.nepalconstructionmart.com" + this.image;
+    //this.image = "http://www.nepalconstructionmart.com" + this.image;
   }
   @override
   String toString() {
@@ -37,7 +37,8 @@ class Category {
 class ProductImage {
   String src;
   ProductImage.fromJson(Map json) {
-    this.src = "http://www.nepalconstructionmart.com" + json['src'];
+    this.src = json['src'];
+   // this.src=this.src+"http://www.nepalconstructionmart.com" ;
   }
 }
 

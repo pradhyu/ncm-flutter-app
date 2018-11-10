@@ -185,7 +185,7 @@ class Categories extends StatefulWidget {
   final int pageId;
   final String title;
   final pageAppBarBackground =
-      "http://www.nepalhardware.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
+      "http://www.nepalconstructionmart.com/wp-content/uploads/2016/04/nepal-hardware-LOGO-01.jpg";
   final categoryState = CategoriesState();
   @override
   createState() => categoryState;
@@ -626,7 +626,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
       boxShadow: <BoxShadow>[
         new BoxShadow(
           color: Colors.black45,
-          blurRadius: 2.0,
+          blurRadius: 1.0,
           offset: new Offset(0.0, 0.0),
         ),
       ],
@@ -766,7 +766,9 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                     )),
                     Expanded(
                         child: Container(
-                            transform: Matrix4.skewY(-0.15),
+                          margin: EdgeInsets.only(top:20.0,left: 20.0),
+                          padding: EdgeInsets.all(10.0),
+                            transform: Matrix4.skewY(-0.20),
                             child: new ListTile(
                               title: formatTitle(product.name),
                               subtitle: productSubTitle(product),
