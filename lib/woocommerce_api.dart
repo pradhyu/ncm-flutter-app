@@ -7,7 +7,7 @@ import "dart:math";
 import "dart:core";
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart';
-import 'package:query_string/query_string.dart';
+import './query_string.dart';
 import 'package:http/http.dart' as http;
 
 class WooCommerceAPI {
