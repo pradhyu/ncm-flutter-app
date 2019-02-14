@@ -2,7 +2,6 @@
 import "./woocommerce_api.dart";
 import "./dataModel.dart";
 import 'dart:async';
-import 'dart:convert';
 import "./cacheManager.dart";
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -44,7 +43,7 @@ Future<List<FeaturedProduct>> forceCacheFeaturedProducts(
           "&featured=true&_fields=name,id,short_description,categories,price,regular_price,sale_price,on_sale,featured,images")
       .then((val) {
     List<FeaturedProduct> _featuredProducts = new List();
-    List productMapList = JSON.decode(val.body);
+    List productMapList = json.decode(val.body);
     productMapList?.forEach((f) {
       var prod = new FeaturedProduct.fromJson(f);
       _featuredProducts.add(prod);
@@ -64,7 +63,7 @@ Future<List<Product>> forceCacheProducts(int pageId, int itemsLimit) async {
           "&_fields=name,id,categories,price,regular_price,sale_price,images")
       .then((val) {
     List<Product> _products = new List();
-    List productMapList = JSON.decode(val.body);
+    List productMapList = json.decode(val.body);
     productMapList?.forEach((f) {
       var prod = new Product.fromJson(f);
       _products.add(prod);
@@ -85,7 +84,7 @@ Future<List<Category>> forceCacheCategories(int parentId) async {
       .getAsync(restUrl)
       .then((val) {
     //v2 rest api woo /wordpress returns list of maps with category
-    List categoriesMapList = JSON.decode(val.body);
+    List categoriesMapList = json.decode(val.body);
     List<Category> _categories = new List();
     categoriesMapList.forEach((f) {
       _categories.add(new Category.fromJson(f));
@@ -105,7 +104,7 @@ Future<ProductDetail> forceCacheProductDetail(
           productId.toString() +
           "?_fields=name,id,tags,related_ids,permalink,description,categories,price,regular_price,sale_price,on_sale,featured,images")
       .then((val) {
-    var productJsonMap= JSON.decode(val.body);
+    var productJsonMap= json.decode(val.body);
       ProductDetail productDetail= new ProductDetail.fromJson(productJsonMap);
     productDetailCacheRepo.set(productId, productDetail);
     return  productDetail;

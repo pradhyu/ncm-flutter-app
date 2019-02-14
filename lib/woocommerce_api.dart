@@ -92,8 +92,8 @@ class WooCommerceAPI {
     print(signingKey);
     //print(UTF8.encode(signingKey));
     var hmacSha1 =
-    new crypto.Hmac(crypto.sha1, UTF8.encode(signingKey)); // HMAC-SHA1
-    var signature = hmacSha1.convert(UTF8.encode(baseString));
+    new crypto.Hmac(crypto.sha1, utf8.encode(signingKey)); // HMAC-SHA1
+    var signature = hmacSha1.convert(utf8.encode(baseString));
 
     print("signature=" + signature.toString());
 
@@ -143,6 +143,6 @@ class WooCommerceAPI {
 
     final response = await http.post(url, body: data);
 
-    return JSON.decode(response.body);
+    return json.decode(response.body);
   }
 }
