@@ -5,7 +5,7 @@ import 'dart:async';
 
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 
 // for firebase ends here
 ////////////firebase messaging
