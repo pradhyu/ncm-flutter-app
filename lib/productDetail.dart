@@ -137,7 +137,7 @@ class ProductDetailsState extends State<ProductDetails> {
       }
     }
 
-    var productCardDecoration = new BoxDecoration();
+    var productCardDecoration = new BoxDecoration() ;
     if (snapshot.hasData) {
       ProductDetail productDetail = snapshot.data;
       // may sort with id ?
