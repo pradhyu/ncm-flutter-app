@@ -398,7 +398,7 @@ class ProductsState extends State<Products>
               // Note: Styles for TextSpans must be explicitly defined.
               // Child text spans will inherit styles from parent
               style: new TextStyle(
-                fontSize: 12.0,
+                fontSize:8.0,
                 color: Colors.black,
               ),
               children: <TextSpan>[
@@ -406,7 +406,7 @@ class ProductsState extends State<Products>
                     text: headerText[0],
                     style: new TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 20.0,
+                        fontSize: 12.0,
                         color: Colors.black87)),
                 new TextSpan(text: headerText.substring(1, headerText.length)),
               ],
@@ -429,7 +429,7 @@ class ProductsState extends State<Products>
       return new Text("(" + '${formatCurrency.format(number)}' + ")",
           style: new TextStyle(
             color: Colors.black45,
-            fontSize: 10.0,
+            fontSize: 8.0,
             fontWeight: FontWeight.w800,
             fontStyle: FontStyle.italic,
             decoration: TextDecoration.lineThrough,
@@ -462,7 +462,7 @@ class ProductsState extends State<Products>
         return new Text(discountString,
             style: new TextStyle(
               color: Colors.green[900],
-              fontSize: 10.0,
+              fontSize: 8.0,
             ));
       } else {
         return Text("");
@@ -640,7 +640,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
               // Note: Styles for TextSpans must be explicitly defined.
               // Child text spans will inherit styles from parent
               style: new TextStyle(
-                fontSize: 13.0,
+                fontSize: 10.0,
                 color: Colors.black,
               ),
               children: <TextSpan>[
@@ -649,7 +649,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                     style: new TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20.0,
-                        color: Colors.black87)),
+                        color: Colors.red)),
                 new TextSpan(text: headerText.substring(1, headerText.length)),
               ],
             ),
@@ -663,7 +663,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
       final formatCurrency = new NumberFormat("#,##0.00");
       return Text(" Rs " + '${formatCurrency.format(number)}',
           style: new TextStyle(
-              color: Colors.red, fontSize: 16.0, fontWeight: FontWeight.w800));
+              color: Colors.red, fontSize: 10.0, fontWeight: FontWeight.w800));
     }
 
     strikeOutPrice(double number) {
@@ -671,7 +671,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
       return new Text("(" + '${formatCurrency.format(number)}' + ")",
           style: new TextStyle(
             color: Colors.black45,
-            fontSize: 11.0,
+            fontSize: 7.0,
             fontWeight: FontWeight.w800,
             fontStyle: FontStyle.italic,
             decoration: TextDecoration.lineThrough,
@@ -685,7 +685,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
         return new Text(discountString,
             style: new TextStyle(
               color: Colors.green[900],
-              fontSize: 14.0,
+              fontSize: 10.0,
             ));
       }
       ;
@@ -703,6 +703,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
           style: TextStyle(
             color: Colors.black45,
             fontStyle: FontStyle.italic,
+            fontSize: 8.0,
           ),
         );
       }
@@ -710,14 +711,14 @@ class FeaturedProductsState extends State<FeaturedProducts> {
 
     productSubTitle(FeaturedProduct product) {
       var saleFormat = Container(
-          child: Row(children: <Widget>[
+          child: Column(children: <Widget>[
         formatCurrency(product),
         strikeOutPrice(product.regularPrice),
         formatShortDescription(product),
       ]));
 
       var regularFromat = Container(
-          child: Row(children: <Widget>[
+          child: Column(children: <Widget>[
         formatCurrency(product),
         formatShortDescription(product),
       ]));
@@ -735,7 +736,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
       boxShadow: <BoxShadow>[
         new BoxShadow(
           color: Colors.black26,
-          blurRadius: 20.0,
+          blurRadius: 10.0,
           offset: new Offset(0.0, 0.0),
         ),
       ],
@@ -766,13 +767,13 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                     )),
                     Expanded(
                         child: Container(
-                          margin: EdgeInsets.only(top:20.0,left: 20.0),
-                          padding: EdgeInsets.all(10.0),
+                          margin: EdgeInsets.only(top:10.0,left: 10.0),
+                          padding: EdgeInsets.all(2.0),
                             transform: Matrix4.skewY(-0.20),
                             child: new ListTile(
                               title: formatTitle(product.name),
                               subtitle: productSubTitle(product),
-                              trailing: formatDiscount(product),
+                          //    trailing: formatDiscount(product),
                               isThreeLine: true,
                             ))),
                   ]),
