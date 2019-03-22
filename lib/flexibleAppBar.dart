@@ -156,7 +156,7 @@ wrapGridViewWithSilverAppBarForProductDetail(
               new SliverList(
                 delegate: new SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
-                  return itemsList[index];
+                   if (index==0) return itemsList[index]; // error handling index > 1
                   }
                 ),
               ),

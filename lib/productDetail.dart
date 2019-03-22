@@ -137,7 +137,7 @@ class ProductDetailsState extends State<ProductDetails> {
       }
     }
 
-    var productCardDecoration = new BoxDecoration() ;
+    var productCardDecoration = new BoxDecoration();
     if (snapshot.hasData) {
       ProductDetail productDetail = snapshot.data;
       // may sort with id ?
@@ -173,10 +173,10 @@ class ProductDetailsState extends State<ProductDetails> {
       productDetailCacheRepo.set(widget.productId, productDetail);
       List<Widget> widgetToDisplay = List<Widget>();
       widgetToDisplay.add(productDetailWidget);
-
+ 
       return wrapGridViewWithSilverAppBarForProductDetail(
           productDetail.name, widgetToDisplay, productDetail.images.first.src,
-          maxCrossAxisExtent: 700.0);
+          maxCrossAxisExtent: 400.0);
     }
   }
 }
