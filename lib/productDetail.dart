@@ -7,6 +7,8 @@ import "./flexibleAppBar.dart";
 import 'package:intl/intl.dart';
 import "package:polygon_clipper/polygon_clipper.dart";
 import 'package:flutter_html_view/flutter_html_view.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:html/dom.dart' as dom;
 
 class ProductDetails extends StatefulWidget {
   final pageAppBarBackground =
@@ -135,30 +137,34 @@ class ProductDetailsState extends State<ProductDetails> {
       }
     }
 
-    var productCardDecoration = new BoxDecoration(
-      color: Color.fromRGBO(255, 10, 10, 10.0),
-      shape: BoxShape.circle,
-      boxShadow: <BoxShadow>[
-        new BoxShadow(
-          color: Colors.black45,
-          blurRadius: 20.0,
-          offset: new Offset(0.0, 0.0),
-        ),
-      ],
-    );
+    var productCardDecoration = new BoxDecoration();
     if (snapshot.hasData) {
       ProductDetail productDetail = snapshot.data;
       // may sort with id ?
       // TODO fix this
       // productList.sort((c1, c2) => (c2.title.compareTo(c1.title)));
+
+// TODO: convert this scrubbing to a function
+      var curatedProductDesc = productDetail.description;
       Widget productDetailWidget = GestureDetector(
         child: Container(
           margin: EdgeInsets.all(1.0),
           decoration: productCardDecoration,
           child: Container(
             margin: EdgeInsets.all(1.0),
-            child: 
-              new HtmlView(data: productDetail.description),
+            child: new Html(
+              data: curatedProductDesc,
+              padding: EdgeInsets.all(8.0),
+              backgroundColor: Colors.white10,
+              defaultTextStyle: TextStyle(
+                fontFamily: 'serif', 
+                color: Colors.black,
+                fontSize: 14),
+              linkStyle: const TextStyle(
+                color: Colors.black,
+                fontSize: 12,
+              ),
+            ),
             decoration: imageBoxDecoration,
           ),
         ),
