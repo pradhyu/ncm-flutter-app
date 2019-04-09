@@ -18,6 +18,7 @@ dependencies:
   url_launcher: "^3.0.2"
   google_maps_webservice: "^0.0.5"
   sliver_fab: "^0.1.0"
+  flutter_search_panel: ^1.0.1 # search bar
   intl: any
   polygon_clipper: "^1.0.0"
 dev_dependencies:

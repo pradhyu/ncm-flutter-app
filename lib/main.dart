@@ -12,6 +12,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:flutter_html_view/flutter_html_view.dart';
+import 'package:flutter_search_panel/flutter_search_panel.dart';
+import 'package:flutter_search_panel/search_item.dart';
 // fo firebase
 // https://pub.dartlang.org/packages/firebase_messaging#-readme-tab-
 //import 'package:firebase_messaging/firebase_messaging.dart';
@@ -349,7 +351,7 @@ class ProductsState extends State<Products>
     with SingleTickerProviderStateMixin {
   var selectedItem;
   var selectedPageId = 1;
-  int limitItems = 100;
+  int limitItems = 100; // limit the number of products to fetch
 
   @override
   Widget build(BuildContext context) {
@@ -398,7 +400,7 @@ class ProductsState extends State<Products>
               // Note: Styles for TextSpans must be explicitly defined.
               // Child text spans will inherit styles from parent
               style: new TextStyle(
-                fontSize:8.0,
+                fontSize: 8.0,
                 color: Colors.black,
               ),
               children: <TextSpan>[
@@ -534,6 +536,31 @@ class ProductsState extends State<Products>
               )))
           .toList();
 
+      List<SearchItem<int>> data = [
+        SearchItem(0, 'Search'),
+      ];
+
+      productList.forEach((product)=> data.add(SearchItem(product.id,product.name)));
+
+      var searchBar = new Container(
+        child: FlutterSearchPanel<int>(
+          padding: EdgeInsets.all(10.0),
+          selected: 3,
+          title: 'Search Product',
+          data: data,
+          icon: new Icon(Icons.all_inclusive, color: Colors.white),
+          color: Colors.redAccent,
+          textStyle: new TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+              decorationStyle: TextDecorationStyle.dotted),
+          onChanged: (int value) {
+            print(value);
+          },
+        ),
+      );
+
       var paginationWidget = new Container(
         height: 70.0,
         width: 70.0,
@@ -569,6 +596,7 @@ class ProductsState extends State<Products>
 
       productCacheRepo.set(selectedPageId, productList);
       var productWidgetListWithPagination = List<Widget>();
+      productWidgetListWithPagination.add(searchBar);
       productWidgetListWithPagination.add(paginationWidget);
       productWidgetListWithPagination.addAll(productWidgetList);
       return wrapWithSilverAppBar("Product", productWidgetListWithPagination,
@@ -755,7 +783,7 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                 margin: EdgeInsets.all(1.0),
                 decoration: productCardDecoration,
                 child: new Container(
-                transform: Matrix4.skewY(-0.03),
+                  transform: Matrix4.skewY(-0.03),
                   // just pick first picture for now
                   alignment: Alignment.topCenter,
                   margin: EdgeInsets.all(1.0),
@@ -767,13 +795,13 @@ class FeaturedProductsState extends State<FeaturedProducts> {
                     )),
                     Expanded(
                         child: Container(
-                          margin: EdgeInsets.only(top:10.0,left: 10.0),
-                          padding: EdgeInsets.all(2.0),
+                            margin: EdgeInsets.only(top: 10.0, left: 10.0),
+                            padding: EdgeInsets.all(2.0),
                             transform: Matrix4.skewY(-0.20),
                             child: new ListTile(
                               title: formatTitle(product.name),
                               subtitle: productSubTitle(product),
-                          //    trailing: formatDiscount(product),
+                              //    trailing: formatDiscount(product),
                               isThreeLine: true,
                             ))),
                   ]),

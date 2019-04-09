@@ -146,19 +146,25 @@ wrapGridViewWithSilverAppBarForProductDetail(
                   //floating: true,
                   backgroundColor: Colors.white,
                   flexibleSpace: new FlexibleSpaceBar(
+                    title: Text(
+                      title,
+                      maxLines: 1,
+                      style: TextStyle(color: Colors.black45,fontSize: 16),
+                      textScaleFactor:1 , 
+                      softWrap: true,
+                    ),
                     background: new Image.network(
                       backgroundImageUrl,
-                      fit: BoxFit.contain,
-                      //color: Colors.white,
-                      //colorBlendMode: BlendMode.difference,
+                      fit:BoxFit.scaleDown,
+                      colorBlendMode: BlendMode.difference,
                     ),
                   )),
               new SliverList(
                 delegate: new SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                   if (index==0) return itemsList[index]; // error handling index > 1
-                  }
-                ),
+                    (BuildContext context, int index) {
+                  if (index == 0)
+                    return itemsList[index]; // error handling index > 1
+                }),
               ),
             ],
           )));

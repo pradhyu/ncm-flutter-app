@@ -148,10 +148,10 @@ class ProductDetailsState extends State<ProductDetails> {
       var curatedProductDesc = productDetail.description;
       Widget productDetailWidget = GestureDetector(
         child: Container(
-          margin: EdgeInsets.all(1.0),
+          margin: EdgeInsets.all(10.0),
           decoration: productCardDecoration,
           child: Container(
-            margin: EdgeInsets.all(1.0),
+            margin: EdgeInsets.all(10.0),
             child: new Html(
               data: curatedProductDesc,
               padding: EdgeInsets.all(8.0),
