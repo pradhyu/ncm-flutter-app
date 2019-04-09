@@ -2247,7 +2247,7 @@ class WC_API_Products extends WC_API_Resource {
 			}
 
 			$data  = $data['products'];
-			$limit = apply_filters( 'woocommerce_api_bulk_limit', 100, 'products' );
+			$limit = apply_filters( 'woocommerce_api_bulk_limit', count($date), 'products' ); // get all data no limit
 
 			// Limit bulk operation
 			if ( count( $data ) > $limit ) {

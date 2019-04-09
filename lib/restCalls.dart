@@ -68,6 +68,8 @@ Future<List<Product>> forceCacheProducts(int pageId, int itemsLimit) async {
       var prod = new Product.fromJson(f);
       _products.add(prod);
     });
+    print("product count: " + _products.length.toString());
+    print("perpage : " + itemsLimit.toString());
     productCacheRepo.set(pageId, _products);
     return _products;
   });

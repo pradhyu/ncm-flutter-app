@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
 initForceCache() {
   forceCacheCategories(0);
   forceCacheFeaturedProducts(1, 100);
-  forceCacheProducts(1, 100);
+  forceCacheProducts(1, 1000);
 }
 
 class MyHomePage extends StatefulWidget {
@@ -351,7 +351,7 @@ class ProductsState extends State<Products>
     with SingleTickerProviderStateMixin {
   var selectedItem;
   var selectedPageId = 1;
-  int limitItems = 100; // limit the number of products to fetch
+  int limitItems = 1000; // limit the number of products to fetch
 
   @override
   Widget build(BuildContext context) {
