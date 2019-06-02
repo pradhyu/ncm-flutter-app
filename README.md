@@ -1,6 +1,6 @@
 # flutter_app
 
-A new Flutter application.
+Nepal construction mart flutter app
 
 ## Getting Started
 
